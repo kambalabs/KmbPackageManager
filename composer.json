@@ -32,7 +32,7 @@
     "minimum-stability": "dev",
     "autoload": {
         "psr-0": {
-            "KmbMcollective": "src/"
+            "KmbPackageManager": "src/"
         },
         "classmap": [
             "./Module.php"
