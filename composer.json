@@ -23,7 +23,7 @@
         "kambalabs/kmb-authentication": "dev-master",
         "kambalabs/kmb-permission": "dev-master",
         "kambalabs/kmb-mc-proxy": "dev-master",
-	"kambalabs/kmb-mcollective": "dev-master",
+	"kambalabs/kmb-mcollective": "dev-master"
     },
     "require-dev": {
         "phpunit/PHPUnit": "3.7.*",
