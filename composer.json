@@ -1,0 +1,41 @@
+{
+    "name": "kambalabs/kmb-package-manager",
+    "description": "Kamba module for managing packages and security updates",
+    "keywords": [
+        "kamba",
+        "module",
+        "mcollective",
+	"patch"
+    ],
+    "homepage": "http://github.com/kambalabs/KmbPackageManager",
+    "license": "GPL V2",
+    "authors": [
+        {
+            "name": "Sébastien Lawniczak",
+            "email": "s.lawniczak@gmail.com",
+            "homepage": "https://github.com/slaws",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "kambalabs/kmb-base": "dev-master",
+        "kambalabs/kmb-domain": "dev-master",
+        "kambalabs/kmb-authentication": "dev-master",
+        "kambalabs/kmb-permission": "dev-master",
+        "kambalabs/kmb-mc-proxy": "dev-master",
+	"kambalabs/kmb-mcollective": "dev-master",
+    },
+    "require-dev": {
+        "phpunit/PHPUnit": "3.7.*",
+        "satooshi/php-coveralls": "dev-master"
+    },
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-0": {
+            "KmbMcollective": "src/"
+        },
+        "classmap": [
+            "./Module.php"
+        ]
+    }
+}
