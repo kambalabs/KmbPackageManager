@@ -109,28 +109,47 @@ class PackageController extends AbstractActionController implements Authenticate
         $pkg_arg = [];
         foreach($packages as $name => $detail) {
             $version = explode('-',$detail['version']);
-            $pkg_arg[] = [ 'name' ,$name];
-            $pkg_arg[] = ['version' , $version[0]];
-            $pkg_arg[] = ['release',  $version[1] ];
+            $pkg_arg[] = [ 'name' => $name, 'version' => $version[0], 'release' => $version[1] ];
         }
         $action = $mcProxyPatchService->patchHost($host,$pkg_arg, $environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
-        $result = $actionHistory->getByActionid($actionid,'finished');
+        $requestid = $action->result[0];
+        $this->debug("Actionid : " . $actionid. ", Requestid : ". print_r($requestid,true));
+        $result = $actionHistory->getAllByActionidRequestId($actionid,$requestid,'finished');
         for($i=0; count($result) < (count($action->discovered_nodes)) ;$i++ ) {
             if($i >= 10) {
                 break;
             }
-            $result = $actionHistory->getByActionid($actionid,'finished');
+            $result = $actionHistory->getAllByActionidRequestId($actionid,$requestid,'finished');
             sleep(1);
         }
-        $this->debug(print_r($result,true));
         $registration = $mcProxyPatchService->registrationRun($host,$environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
-        $this->debug(print_r($registration,true));
-        
-        sleep(5);
-        return new JsonModel(['foo' => 'bar']);
+        sleep(1);
+        $status = $this->globalActionStatus($result);
+        return new JsonModel($status);
     }
 
-    
+
+    public function globalActionStatus($result) {
+        $status = "";
+        $errors = [];
+        foreach($result as $actionResult)
+        {
+            $this->debug(print_r($actionResult,true));
+            if($actionResult->getStatusCode() == 0 && $status == "") {
+                $status = "success";
+            }elseif($actionResult->getStatusCode() == 0 && $status == "error") {
+                $status = "partial";
+            }elseif($actionResult->getStatusCode() != 0 && $status == "") {
+                $status = "error";
+                $errors[$actionResult->getAgent()."::".$actionResult->getAction()][] = $actionResult->getResult();
+                
+            }elseif($actionResult->getStatusCode() != 0 && $status == "success") {
+                $status = "partial";
+                $errors[$actionResult->getAgent()."::".$actionResult->getAction()][] = $actionResult->getResult();
+            }            
+        }
+        return ['status' => $status, 'errors' => $errors];
+    }
     /**
      * @param string $message
      * @return IndexController

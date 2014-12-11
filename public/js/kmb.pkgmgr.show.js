@@ -43,12 +43,34 @@ $(document).ready(function() {
 	    url: $form.attr('action'),
 	    data: $form.serialize(),
 	    success: function(data, status) {
-		console.log(data);
-		$.gritter.add({
-		    title: 'Patch',
-		    text: 'Patch applied successfully',
-		    class_name: 'gritter-success',
-		});
+		if(data['status'] == "success") {
+		    $.gritter.add({
+			title: 'Patch',
+			text: 'Patch applied successfully',
+			class_name: 'gritter-success',
+		    });
+		    location.reload(true);
+		}else if(data['status'] == "partial") {
+		    var $error_list = "<ul>";
+		    $.each(data['errors'], function (agent,result) {
+			$error_list += "<li>"+ agent +" : "+ result +"</li>";
+		    });
+		    $.gritter.add({
+			title: 'Patch',
+			text: 'Patch applied with errors.<br>'+$error_list,
+			class_name: 'gritter-warning',
+		    });
+		}else {
+		    var $error_list = "<ul>";
+		    $.each(data['errors'], function (agent,result) {
+			$error_list += "<li>"+ agent +" : "+ result +"</li>";
+		    });
+		    $.gritter.add({
+			title: 'Patch',
+			text: 'Patch NOT applied. <br/>'+ $error_list,
+			class_name: 'gritter-danger',
+		    });		    
+		}
 	    },
 	    error: function(data, status) {
 		$.gritter.add({
