@@ -5,23 +5,35 @@
 <form class="form-horizontal" data-async action="<?php echo $this->url('package-manager-patch', ['action' => 'patchHost','server' => $host ], [], true) ?>" method="POST">
   <input type="hidden" value="<?= $actionid ?>" name="actionid"/>
   <div class="modal-body">
-    <blockquote><?= $this->translate('The following packages will be upgraded') ?></blockquote>
-    
-    <table class="table table-striped table-hover table-condensed bootstrap-datatable dataTable no-footer">
-      <thead>
-	<th><?= $this->translate('Package') ?></th>
-	<th><?= $this->translate('Version') ?></th>
-	<th><?= $this->translate('Repository') ?></th>
-      </thead>
-      <tbody id="PackageListToUpgrade">
-	<?php foreach($packages as $index => $package): ?>
-	<tr><td><?= $package->package ?></td><td><?= $package->version ?><input type="hidden" value="<?= $package->version ?>" name="package[<?= $package->package ?>][version]"/></td><td><?= $package->repo ?></td></tr>
-	<?php endforeach ?>
-      </tbody>
-    </table>
+      <div class="alert alert-<?= $divalert ?>"><?php if ($result['status'] === 'success'): ?>
+          <?=  $this->translate('The following packages will be upgraded') ?>
+          <?php else: ?>
+          <?= $this->translate('Error with pre-patch on this server :') ?>
+          <br/>
+          <?= $result['errors'][$agent . '::' . $action][0]; ?>
+          <?php endif ?>
+      </div>
+      <?php if ($result['status'] === 'success'): ?>
+      <table class="table table-striped table-hover table-condensed bootstrap-datatable dataTable no-footer">
+          <thead>
+	      <th><?= $this->translate('Package') ?></th>
+	      <th><?= $this->translate('Version') ?></th>
+	      <th><?= $this->translate('Repository') ?></th>
+          </thead>
+          <tbody id="PackageListToUpgrade">
+	      <?php foreach($packages as $index => $package): ?>
+	      <tr><td><?= $package->package ?></td><td><?= $package->version ?><input type="hidden" value="<?= $package->version ?>" name="package[<?= $package->package ?>][version]"/></td><td><?= $package->repo ?></td></tr>
+	      <?php endforeach ?>
+          </tbody>
+      </table>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn btn-default" data-dismiss="modal"><?= $this->translate('Cancel') ?></button>
-    <button type="submit" class="btn btn-primary"><?= $this->translate('Install Package') ?></button>
+      <button type="button" class="btn btn-default" data-dismiss="modal"><?= $this->translate('Cancel') ?></button>
+      <button type="submit" class="btn btn-primary"><?= $this->translate('Install Package') ?></button>
   </div>
+  <?php  else: ?>
+  <div class="modal-footer">
+      <button type="button" class="btn btn-danger" data-dismiss="modal"><?= $this->translate('Cancel') ?></button>
+  </div>
+  <?php endif ?>
 </form>

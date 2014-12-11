@@ -28,7 +28,7 @@ use KmbAuthentication\Controller\AuthenticatedControllerInterface;
 use KmbMcProxy\Service\Patch;
 
 class PackageController extends AbstractActionController implements AuthenticatedControllerInterface
-{ 
+{
     protected $acceptCriteria = array(
         'Zend\View\Model\JsonModel' => array(
             'application/json',
@@ -58,7 +58,7 @@ class PackageController extends AbstractActionController implements Authenticate
                 'data' => $result->getData(),
             ];
         }
-        
+
         return $viewModel->setVariables($variables);
     }
 
@@ -69,7 +69,7 @@ class PackageController extends AbstractActionController implements Authenticate
         $package =  explode(',',$this->params()->fromPost('packages'));
         $mcProxyPatchService = $this->getServiceLocator()->get('mcProxyPatchService');
         $actionHistory = $this->getServiceLocator()->get('McollectiveHistoryRepository');
-              
+
         $action = $mcProxyPatchService->prepatchHost($host,$package,$environment->getNormalizedName(),$this->identity()->getLogin());
         $result = $actionHistory->getResultsByActionid($action[0]->actionid,(count($action[0]->discovered_nodes)*count($package)),10);
         if(count($result) != 0) {
@@ -82,8 +82,11 @@ class PackageController extends AbstractActionController implements Authenticate
             }
             $packageAction=array_unique($packageAction,SORT_REGULAR);
         }
-        // CHECK 
-        $html = new ViewModel(['packages' => $packageAction, 'host' => $host, 'actionid' => $action[0]->actionid]);
+
+        $checkResult = $this->globalActionStatus($result);
+        $divalert = ($checkResult['status'] === 'success') ? 'success' : 'danger';
+        // CHECK
+        $html = new ViewModel(['packages' => $packageAction, 'host' => $host, 'actionid' => $action[0]->actionid, 'result' => $checkResult, 'divalert' => $divalert, 'agent' => $result[0]->getAgent(), 'action' => $result[0]->getAction() ]);
         $html->setTerminal(true);
         return $html;
     }
@@ -109,7 +112,7 @@ class PackageController extends AbstractActionController implements Authenticate
         $result = $actionHistory->getResultsByActionidRequestId($actionid,$requestid,count($action->discovered_nodes),10);
         $registration = $mcProxyPatchService->registrationRun($host,$environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
         $actionHistory->getResultsByActionidRequestId($actionid,$registration->result[0],1,10);
-        
+
         $status = $this->globalActionStatus($result);
         return new JsonModel($status);
     }
@@ -128,11 +131,11 @@ class PackageController extends AbstractActionController implements Authenticate
             }elseif($actionResult->getStatusCode() != 0 && $status == "") {
                 $status = "error";
                 $errors[$actionResult->getAgent()."::".$actionResult->getAction()][] = $actionResult->getResult();
-                
+
             }elseif($actionResult->getStatusCode() != 0 && $status == "success") {
                 $status = "partial";
                 $errors[$actionResult->getAgent()."::".$actionResult->getAction()][] = $actionResult->getResult();
-            }            
+            }
         }
         return ['status' => $status, 'errors' => $errors];
     }
