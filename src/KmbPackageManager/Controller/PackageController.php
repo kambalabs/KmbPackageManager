@@ -71,15 +71,7 @@ class PackageController extends AbstractActionController implements Authenticate
         $actionHistory = $this->getServiceLocator()->get('McollectiveHistoryRepository');
               
         $action = $mcProxyPatchService->prepatchHost($host,$package,$environment->getNormalizedName(),$this->identity()->getLogin());
-        $result = $actionHistory->getByActionid($action[0]->actionid,'finished');
-
-        for($i=0; count($result) < (count($action[0]->discovered_nodes)*count($package)) ;$i++ ) {
-            if($i >= 10) {
-                break;
-            }
-            $result = $actionHistory->getByActionid($action[0]->actionid,'finished');
-            sleep(1);
-        }
+        $result = $actionHistory->getResultsByActionid($action[0]->actionid,(count($action[0]->discovered_nodes)*count($package)),10);
         if(count($result) != 0) {
             $packageAction = [];
             foreach($result as $index => $resp) {
@@ -114,16 +106,10 @@ class PackageController extends AbstractActionController implements Authenticate
         $action = $mcProxyPatchService->patchHost($host,$pkg_arg, $environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
         $requestid = $action->result[0];
         $this->debug("Actionid : " . $actionid. ", Requestid : ". print_r($requestid,true));
-        $result = $actionHistory->getAllByActionidRequestId($actionid,$requestid,'finished');
-        for($i=0; count($result) < (count($action->discovered_nodes)) ;$i++ ) {
-            if($i >= 10) {
-                break;
-            }
-            $result = $actionHistory->getAllByActionidRequestId($actionid,$requestid,'finished');
-            sleep(1);
-        }
+        $result = $actionHistory->getResultsByActionidRequestId($actionid,$requestid,count($action->discovered_nodes),10);
         $registration = $mcProxyPatchService->registrationRun($host,$environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
-        sleep(1);
+        $actionHistory->getResultsByActionidRequestId($actionid,$registration->result[0],1,10);
+        
         $status = $this->globalActionStatus($result);
         return new JsonModel($status);
     }
