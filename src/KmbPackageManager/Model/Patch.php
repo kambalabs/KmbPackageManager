@@ -182,6 +182,7 @@ class Patch implements PatchInterface, ServiceLocatorAwareInterface
 
     public function getAffectedHostsFor($environment)
     {
+
         //CHECK
         $perm = $this->serviceLocator->get('KmbPermission\Service\Environment')->getAllReadable($environment);
         $queryBuilder = $this->serviceLocator->get('KmbPuppetDb\Query\NodesEnvironmentsQueryBuilder');
