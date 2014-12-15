@@ -20,7 +20,12 @@
  */
 namespace KmbPackageManager\Model;
 
-class Patch implements PatchInterface
+
+use Zend\ServiceManager\ServiceLocatorAwareInterface;
+use Zend\ServiceManager\ServiceLocatorInterface;
+
+
+class Patch implements PatchInterface, ServiceLocatorAwareInterface
 {
     /** @var int */
     protected $id;
@@ -36,7 +41,9 @@ class Patch implements PatchInterface
 
     /** @var array */
     protected $affectedHosts;
-    
+
+    protected $serviceLocator;
+
     /**
      * @param string   $name
      * @param string   $description
@@ -140,7 +147,7 @@ class Patch implements PatchInterface
         return $this;
     }
 
-    
+
     /**
      * Get Packages.
      *
@@ -173,8 +180,22 @@ class Patch implements PatchInterface
         return $this->affectedHosts;
     }
 
-    
-    
+    public function getAffectedHostsFor($environment)
+    {
+        //CHECK
+        $perm = $this->serviceLocator->get('KmbPermission\Service\Environment')->getAllReadable($environment);
+        $queryBuilder = $this->serviceLocator->get('KmbPuppetDb\Query\NodesEnvironmentsQueryBuilder');
+        $nodeService = $this->serviceLocator->get('KmbPuppetDb\Service\Node');
+        if (!empty($perm)) {
+            $queryEnvironment = $queryBuilder->build($perm)->getData();
+        }
+        $nodesCollection = $nodeService->getAll($queryEnvironment);
+        $nodeList = array_map(function($item) {
+            return $item->getName();
+        },$nodesCollection->getData());
+        return array_intersect($this->affectedHosts,$nodeList);
+    }
+
     /**
      * Add an affected Host
      *
@@ -207,8 +228,14 @@ class Patch implements PatchInterface
         return in_array($host,$this->affectedHosts);
     }
 
+    public function setServiceLocator(ServiceLocatorInterface $serviceLocator) {
+        $this->serviceLocator = $serviceLocator;
+    }
 
-    
+    public function getServiceLocator() {
+        return $this->serviceLocator;
+    }
+
     /**
      * @return string
      */

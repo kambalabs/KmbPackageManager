@@ -114,6 +114,48 @@ class PackageController extends AbstractActionController implements Authenticate
         return $html;
     }
 
+    public function prePatchAllHostAction(){
+        $environment = $this->getServiceLocator()->get('EnvironmentRepository')->getById($this->params()->fromRoute('envId'));
+        $patch = $this->getServiceLocator()->get('PatchRepository')->getByPublicId( $this->params()->fromRoute('patch'));
+        $patch->setServiceLocator($this->getServiceLocator());
+        $mcProxyPatchService = $this->getServiceLocator()->get('mcProxyPatchService');
+
+        // CHECK servers from post or kamba ?
+        $servers = $this->params()->fromPost('servers');
+        // ENDCHECK
+        $actionHistory = $this->getServiceLocator()->get('McollectiveHistoryRepository');
+
+        $action = $mcProxyPatchService->prepatchBatch($patch->getAffectedHostsFor($environment),$patch->getPackages(),$environment->getNormalizedName(),$this->identity()->getLogin());
+        $result = $actionHistory->getResultsByActionid($action[0]->actionid, (count($action[0]->discovered_nodes)*count($patch->getPackages())), 10);
+
+        if(count($result) != 0) {
+            $packageAction = [];
+            foreach($result as $index => $resp) {
+                $response_package = json_decode($resp->getResult());
+                $hostname = $resp->getHostname();
+                if(!isset($packageAction[$resp->getHostname()])) {
+                    $packageAction[$resp->getHostname()] = [];
+                }
+                if(isset($response_package->outdated_packages)) {
+                    $packageAction[$resp->getHostname()] = array_merge($response_package->outdated_packages,$packageAction[$resp->getHostname()]);
+                }
+                $this->debug($packageAction);
+            }
+            foreach($packageAction as $hostname => $pkg) {
+                $packageAction[$hostname]=array_unique($packageAction[$hostname],SORT_REGULAR);
+            }
+        }
+
+        $this->debug($packageAction);
+        $checkResult = $this->globalActionStatus($result);
+        $divalert = ($checkResult['status'] === 'success') ? 'success' : 'danger';
+        // CHECK
+        $html = new ViewModel(['packages' => $packageAction, 'actionid' => $action[0]->actionid, 'result' => $checkResult, 'divalert' => $divalert, 'agent' => $result[0]->getAgent(), 'action' => $result[0]->getAction(), 'patch' => $patch->getPublicId() ]);
+        $html->setTerminal(true);
+        return $html;
+        return new JsonModel(['result' => $action]);
+    }
+
 
     public function patchHostAction() {
         $environment = $this->getServiceLocator()->get('EnvironmentRepository')->getById($this->params()->fromRoute('envId'));
@@ -147,6 +189,34 @@ class PackageController extends AbstractActionController implements Authenticate
     }
 
 
+    public function patchAllHostAction() {
+        $environment = $this->getServiceLocator()->get('EnvironmentRepository')->getById($this->params()->fromRoute('envId'));
+        $actionid = $this->params()->fromPost('actionid');
+        $packages =  $this->params()->fromPost('package');
+
+        $mcProxyPatchService = $this->getServiceLocator()->get('mcProxyPatchService');
+        $actionHistory = $this->getServiceLocator()->get('McollectiveHistoryRepository');
+        $patch = $this->getServiceLocator()->get('PatchRepository')->getByPublicId( $this->params()->fromRoute('patch'));
+        $patch->setServiceLocator($this->getServiceLocator());
+
+
+        $pkg_arg = [];
+        foreach($packages as $name => $detail) {
+            $version = explode('-',$detail['version']);
+            $pkg_arg[] = [ 'name' => $name, 'version' => $version[0], 'release' => $version[1] ];
+        }
+
+        $action = $mcProxyPatchService->patchBatch($patch->getAffectedHostsFor($environment),$pkg_arg, $environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
+        $requestid = $action->result[0];
+        $this->debug("Actionid : " . $actionid. ", Requestid : ". print_r($requestid,true));
+        $result = $actionHistory->getResultsByActionidRequestId($actionid,$requestid,count($action->discovered_nodes),29);
+        $registration = $mcProxyPatchService->registrationRun($patch->getAffectedHostsFor($environment),$environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
+        $actionHistory->getResultsByActionidRequestId($actionid,$registration->result[0],count($registration->discovered_nodes),10);
+
+        $status = $this->globalActionStatus($result);
+        return new JsonModel($status);
+    }
+
     public function globalActionStatus($result) {
         $status = "";
         $errors = [];
@@ -166,6 +236,10 @@ class PackageController extends AbstractActionController implements Authenticate
                 $errors[$actionResult->getAgent()."::".$actionResult->getAction()][] = $actionResult->getResult();
             }
         }
+        $this->debug('This is the result of globalActionStatus : ');
+        $this->debug(print_r($status,true));
+        $this->debug(print_r($errors,true));
+        $this->debug(print_r($result,true));
         return ['status' => $status, 'errors' => $errors];
     }
     /**

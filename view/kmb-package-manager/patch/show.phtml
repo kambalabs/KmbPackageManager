@@ -1,4 +1,5 @@
 <?php $this->inlineScript()->prependFile($this->basePath() . '/js/kmb.pkgmgr.show.js'); ?>
+<?php $this->headLink()->prependStylesheet($this->basePath() . '/css/kmb.pkgmgr.prepatchall.css'); ?>
 <div class="panel">
     <div class="row">
         <div class="col-md-12">
@@ -15,7 +16,7 @@
 	</div>
         <div class="col-md-5 pull-right">
 	  <div>&nbsp;</div>
-	  <a class="btn btn-danger patch-btn" type="button"><?= $this->translate('Patch all hosts') ?></a>
+	  <a id="patchAllBtn" class="btn btn-danger" type="button" data-url="<?= $this->url('package-manager-prepatchAll',['patch' => $patch->getPublicId()],[],true) ?>"><?= $this->translate('Patch all hosts') ?></a>
 	  <a target="_blank" type="button" class="btn btn-info" href="http://cve.mitre.org/cgi-bin/cvename.cgi?name=<?= $patch->getPublicId() ?>" ><?= $this->translate('Open CVE detail page ') ?></a>
 	</div>
     </div>
@@ -31,7 +32,7 @@
 		    <th><?= $this->translate('Action')?></th>
 		  </thead>
 		  <tbody>
-		    <?php foreach($patch->getAffectedHosts() as $index => $host): ?>
+		    <?php foreach($patch->getAffectedHostsFor($environment) as $index => $host): ?>
 		      <tr><td><?= $host ?></td><td><button class="btn btn-danger patch-btn" data-cve="<?= $patch->getPublicId() ?>" data-url="<?= $this->url('package-manager-prepatch',['server' => $host],[],true) ?>" data-package="<?= implode(',',$patch->getPackages()) ?>"><?= $this->translate('Patch')?></button></td></tr>
 		    <?php endforeach ?>
 		  </tbody>

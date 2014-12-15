@@ -42,7 +42,8 @@ class PatchController extends AbstractActionController implements AuthenticatedC
     public function showAction(){
         $environment = $this->getServiceLocator()->get('EnvironmentRepository')->getById($this->params()->fromRoute('envId'));
         $patch = $this->getServiceLocator()->get('PatchRepository')->getByPublicId($this->params()->fromRoute('patch'));
-        return new ViewModel(['patch' => $patch]);
+        $patch->setServiceLocator($this->getServiceLocator());
+        return new ViewModel(['patch' => $patch, 'environment' => $environment]);
     }
 
     public function historyAction(){

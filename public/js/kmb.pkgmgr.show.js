@@ -87,5 +87,31 @@ $(document).ready(function() {
 	});
 
 	event.preventDefault();
-    }); 
+    });
+
+    $(document).on('click','#patchAllBtn', function(data){
+	NProgress.start();
+	$(":input").attr("disabled", "disabled");
+	$("a").attr("disabled", "disabled");
+	$.gritter.add({
+	    title: 'Information',
+	    text: 'Please wait while checking patches',
+	    class_name: 'gritter-info',
+	});
+
+	$.ajax({
+	    type: "POST",
+	    url: $(this).data('url'),
+	    data: "cve="+$(this).data('cve'),
+	    success: function(data) {
+		$("#prepatch-modalcontent").html(data);
+		$('#prepatch_detail').modal('show');
+	    },
+	    complete: function(data) {
+		NProgress.done();
+		$(":input").attr("disabled", false);
+		$("a").attr("disabled", false);
+	    }
+	});	
+    });
 });

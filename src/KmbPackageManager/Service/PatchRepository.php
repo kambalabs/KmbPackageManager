@@ -56,54 +56,96 @@ class PatchRepository extends Repository implements PatchRepositoryInterface
     {
         return $this;
     }
-        
+
     /**
      * @param array $hostlist
      * @return McollectiveAgentInterface
      */
     public function getAllByHostList($hostlist, $query = null, $orderBy=null, $limit=null , $offset=null)
     {
-        $selectPatch = $this->getPatchSelect($limit,$offset,$orderBy,$query);
-        $select = $this->getJoinSelect($selectPatch);
-        
-        
-        $select->where([
-            'hosts.hostname' => $hostlist
+        $selectHost = $this->getSlaveSql()->select()->columns(['id'])->from($this->hostTableName);
+        $selectHost->where([
+            'hostname' => $hostlist,
         ]);
+
+        $selectJoin = $this->getSlaveSql()->select()->columns(['vulnerability_id'])->from($this->joinTableName);
+        $selectJoin->where([
+            'host_id' => [$selectHost]
+        ]);
+
+        $selectPatch = $this->getSlaveSql()->select()->columns(['id'])->from($this->tableName);
+        $selectPatch->where([
+            'id' => [$selectJoin],
+        ]);
+
+        if(isset($limit)) {
+            $selectPatch->limit($limit);
+        }
+        if(isset($offset)) {
+            $selectPatch->offset($offset);
+        }
+
+        $select = $this
+            ->getSlaveSql()
+            ->select()
+            ->from($this->joinTableName)
+            ->join(
+                ['vuln' => $this->tableName],
+                'vuln.id = '.$this->joinTableName.'.vulnerability_id',
+                ['*' => '*'],
+                Select::JOIN_RIGHT
+            )
+            ->join(
+                ['hosts' => $this->getHostTableName()],
+                'hosts.id = '. $this->joinTableName .'.host_id',
+                [
+                    'hosts.id' => 'id',
+                    'hosts.hostname' => 'hostname'
+                ],
+                Select::JOIN_LEFT
+            );
+        $select->where([
+            'vuln.id' => [$selectPatch]
+        ]);
+
         if($query) {
             $select->where
-                ->like('publicid', '%'. $query .'%');
-        }        
+                ->like('publicid', '%'. $query .'%')
+                ->or
+                ->like('package', '%'.$query.'%');
+        }
         if($orderBy != null) {
             $sort = explode(' ',$orderBy);
             if($sort[0] == "criticity") {
-                $select->order(new \Zend\Db\Sql\Expression("CASE 
+                $select->order(new \Zend\Db\Sql\Expression("CASE
                                                   WHEN criticity = 'low' THEN 2
                                                   WHEN criticity = 'medium' THEN 1
-                                                  WHEN criticity = 'high' THEN 0 
+                                                  WHEN criticity = 'high' THEN 0
                                                   END ". $sort[1]));
             } else {
                 $select->order($orderBy);
             }
         } else {
+            $selectPatch->order("publicid DESC");
             $select->order("publicid DESC");
         }
+
         $result = $this->hydrateAggregateRootsFromResult($this->performRead($select));
         return $result;
     }
 
     public function countAllByHostList($hostlist)
-    {       
+    {
         $selectPatch=$this->getSlaveSql()->select()->from($this->tableName);
         $select = $this->getJoinSelect($selectPatch);
-        
-        
+
+
         $select->where([
             'hosts.hostname' => $hostlist
-        ]);                
+        ]);
         return count($this->performRead($select));
     }
-    
+
 
     public function getAll() {
         $select = $this->getJoinSelect($this->getSlaveSql()->select()->from($this->tableName));
@@ -136,10 +178,10 @@ class PatchRepository extends Repository implements PatchRepositoryInterface
         if($orderBy != null) {
             $sort = explode(' ',$orderBy);
             if($sort[0] == "criticity") {
-                $selectPatch->order(new \Zend\Db\Sql\Expression("CASE 
+                $selectPatch->order(new \Zend\Db\Sql\Expression("CASE
                                                   WHEN criticity = 'low' THEN 0
                                                   WHEN criticity = 'medium' THEN 1
-                                                  WHEN criticity = 'high' THEN 2 
+                                                  WHEN criticity = 'high' THEN 2
                                                   END ". $sort[1]));
             } else {
                 $selectPatch->order($orderBy);
@@ -260,7 +302,7 @@ class PatchRepository extends Repository implements PatchRepositoryInterface
 
             if (isset($row['hosts.hostname'])) {
                 /** @var RevisionLog $revisionLog */
-                $aggregateRoot->addAffectedHost($row['hosts.hostname']);               
+                $aggregateRoot->addAffectedHost($row['hosts.hostname']);
             }
             if (isset($row['hosts.package'])) {
                 /** @var RevisionLog $revisionLog */

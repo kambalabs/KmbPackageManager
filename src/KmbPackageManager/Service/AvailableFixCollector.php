@@ -63,7 +63,6 @@ class AvailableFixCollector implements CollectorInterface
             }
         }
 
-        
         $environments = $this->permissionEnvironmentService->getAllReadable(isset($params['environment']) ? $params['environment'] : null);
         $queryEnvironment = null;
         if (!empty($environments)) {
@@ -84,7 +83,7 @@ class AvailableFixCollector implements CollectorInterface
         $patchList = $this->patchRepository->getAllByHostList($environment_hosts, $dtquery, $orderBy, $limit, $offset);
         return Collection::factory($patchList, $limit, $this->patchRepository->countAllByHostList($environment_hosts));
     }
-    
+
     /**
      * Get NodeService.
      *
@@ -128,7 +127,7 @@ class AvailableFixCollector implements CollectorInterface
     }
 
 
-    
+
     /**
      * Set NodesEnvironmentsQueryBuilder.
      *
