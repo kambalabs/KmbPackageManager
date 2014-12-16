@@ -25,10 +25,10 @@ use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\JsonModel;
 use Zend\View\Model\ViewModel;
 use KmbAuthentication\Controller\AuthenticatedControllerInterface;
-use KmbMcProxy\Service\Patch;
+use KmbPackageManager\Model\SecurityLogs;
 
 class PatchController extends AbstractActionController implements AuthenticatedControllerInterface
-{ 
+{
     protected $acceptCriteria = array(
         'Zend\View\Model\JsonModel' => array(
             'application/json',
@@ -43,6 +43,39 @@ class PatchController extends AbstractActionController implements AuthenticatedC
         $environment = $this->getServiceLocator()->get('EnvironmentRepository')->getById($this->params()->fromRoute('envId'));
         $patch = $this->getServiceLocator()->get('PatchRepository')->getByPublicId($this->params()->fromRoute('patch'));
         return new ViewModel(['patch' => $patch]);
+    }
+
+    public function historyAction(){
+        $viewModel = $this->acceptableViewModelSelector($this->acceptCriteria);
+        $variables = [];
+
+        if ($viewModel instanceof JsonModel) {
+            /** @var DataTable $datatable */
+            $datatable   = $this->getServiceLocator()->get('securitylogs');
+            $params      = $this->params()->fromQuery();
+            $environment = $this->getServiceLocator()->get('EnvironmentRepository')->getById($this->params()->fromRoute('envId'));
+            if ($environment !== null) {
+                $params['environment'] = $environment;
+            }
+            $result = $datatable->getResult($params);
+            $variables = [
+                'draw'            => $result->getDraw(),
+                'recordsTotal'    => $result->getRecordsTotal(),
+                'recordsFiltered' => $result->getRecordsFiltered(),
+                'data'            => $result->getData(),
+            ];
+        }
+
+        return $viewModel->setVariables($variables);
+
+        // $repository = $this->getServiceLocator()->get('SecurityLogsRepository');
+        // $history = $repository->getAll();
+
+        // $coin = new SecurityLogs('2014-12-11 16:55:40.790996','Manux','coin','1','2','manux01');
+        // $repository->add($coin);
+        // $history2 = $repository->getAll();
+
+        // return new JsonModel(['patch1' => $history, 'patch2' => $history2]);
     }
 
     /**

@@ -16,13 +16,14 @@
       <?php if ($result['status'] === 'success'): ?>
       <table class="table table-striped table-hover table-condensed bootstrap-datatable dataTable no-footer">
           <thead>
-	      <th><?= $this->translate('Package') ?></th>
-	      <th><?= $this->translate('Version') ?></th>
+              <th><?= $this->translate('Package') ?></th>
+              <th><?= $this->translate('From Version') ?></th>
+	      <th><?= $this->translate('To Version') ?></th>
 	      <th><?= $this->translate('Repository') ?></th>
           </thead>
           <tbody id="PackageListToUpgrade">
-	      <?php foreach($packages as $index => $package): ?>
-	      <tr><td><?= $package->package ?></td><td><?= $package->version ?><input type="hidden" value="<?= $package->version ?>" name="package[<?= $package->package ?>][version]"/></td><td><?= $package->repo ?></td></tr>
+	      <?php foreach($packages as $package => $info): ?>
+	      <tr><td><?= $package ?></td><td><?= $info['from_version'] ?><input type="hidden" value="<?= $info['from_version'] ?>" name="package[<?= $package ?>][from_version]"/></td><td><?= $info['to_version'] ?><input type="hidden" value="<?= $info['to_version'] ?>" name="package[<?= $package ?>][version]"/></td><td><?= $info['repo'] ?></td></tr>
 	      <?php endforeach ?>
           </tbody>
       </table>

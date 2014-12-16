@@ -62,6 +62,21 @@ return [
                         'action' => 'show',
                     ],
                 ],
+            ],
+            'package-manager-security-logs' => [
+                'type' => 'Segment',
+                'options' => [
+                    'route' => '[/env/:envId]/security-logs',
+                    'constraints' => [
+                        'envId' => '[0-9]+',
+                    ],
+                    'defaults' => [
+                        '__NAMESPACE__' => 'KmbPackageManager\Controller',
+                        'controller' => 'Patch',
+                        'action' => 'history',
+                        'envId' => 0,
+                    ],
+                ],
             ]
         ],
     ],
@@ -86,6 +101,13 @@ return [
                         'useRouteMatch' => true,
                         'tabindex' => 42,
                     ],
+                    [
+                        'label' => $translate('Security Logs'),
+                        'route' => 'package-manager-security-logs',
+                        'action' => 'history',
+                        'useRouteMatch' => true,
+                        'tabindex' => 42,
+                    ],
                 ],
             ],
         ],
@@ -100,6 +122,13 @@ return [
             'join_table_name' => 'host_vulnerability',
             'factory' => 'KmbPackageManager\Service\PatchRepositoryFactory',
             'repository_class' => 'KmbPackageManager\Service\PatchRepository',
+        ],
+        'SecurityLogsRepository' => [
+            'aggregate_root_class'          => 'KmbPackageManager\Model\SecurityLogs',
+            'aggregate_root_hydrator_class' => 'KmbPackageManager\Hydrator\SecurityLogsHydrator',
+            'table_name'                    => 'security_logs',
+            'table_sequence_name'           => 'security_logs_id_seq',
+            'repository_class'              => 'KmbPackageManager\Service\SecurityLogsRepository',
         ],
     ],
     'translator' => [
@@ -154,9 +183,40 @@ return [
                     'key'       => 'criticity',
                 ],
                 [
-                    'decorator' => 'KmbPackageManager\View\Decorator\NbServersDecorator',              
+                    'decorator' => 'KmbPackageManager\View\Decorator\NbServersDecorator',
                 ],
-            ]            
+            ]
+        ],
+        'securitylogs' => [
+            'id' => 'securitylogs',
+            'classes' => ['table','table-striped','table-hover','table-condensed','bootstrap-datatable'],
+            'collectorFactory' => 'KmbPackageManager\Service\SecurityLogsCollectorFactory',
+            'columns' => [
+                [
+                    'decorator' => 'KmbPackageManager\View\Decorator\SecurityLogsDateDecorator',
+                    'key'       => 'update_at',
+                ],
+                [
+                    'decorator' => 'KmbPackageManager\View\Decorator\SecurityLogsUserDecorator',
+                    'key'       => 'username',
+                ],
+                [
+                    'decorator' => 'KmbPackageManager\View\Decorator\SecurityLogsPackageDecorator',
+                    'key'       => 'package',
+                ],
+                [
+                    'decorator' => 'KmbPackageManager\View\Decorator\SecurityLogsFromVersionDecorator',
+                    'key'       => 'from_version',
+                ],
+                [
+                    'decorator' => 'KmbPackageManager\View\Decorator\SecurityLogsToVersionDecorator',
+                    'key'       => 'to_version',
+                ],
+                [
+                    'decorator' => 'KmbPackageManager\View\Decorator\SecurityLogsServerDecorator',
+                    'key'       => 'to_version',
+                ],
+            ]
         ]
     ],
     'asset_manager' => [

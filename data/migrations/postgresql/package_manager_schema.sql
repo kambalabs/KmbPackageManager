@@ -26,3 +26,17 @@ CREATE TABLE host_vulnerability (
 CREATE INDEX host_vulnerability_vulnerability_id ON host_vulnerability (vulnerability_id);
 CREATE INDEX host_vulnerability_host_id ON host_vulnerability (host_id);
 
+DROP TABLE IF EXISTS security_logs CASCADE;
+CREATE TABLE security_logs (
+  id                       SERIAL              PRIMARY KEY,
+  username                 VARCHAR(64)         NOT NULL,
+  package                  VARCHAR(64)         NOT NULL,
+  from_version             VARCHAR(32)         NOT NULL,
+  to_version               VARCHAR(32)         NOT NULL,
+  server                   VARCHAR(32)         NOT NULL,
+  updated_at               TIMESTAMP    NOT NULL
+
+);
+CREATE INDEX security_logs_username ON security_logs (username);
+CREATE INDEX security_logs_package ON security_logs (package);
+CREATE INDEX security_logs_server ON security_logs (server);

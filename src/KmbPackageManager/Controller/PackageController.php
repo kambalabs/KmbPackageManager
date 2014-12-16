@@ -26,6 +26,7 @@ use Zend\View\Model\JsonModel;
 use Zend\View\Model\ViewModel;
 use KmbAuthentication\Controller\AuthenticatedControllerInterface;
 use KmbMcProxy\Service\Patch;
+use KmbPackageManager\Model\SecurityLogs;
 
 class PackageController extends AbstractActionController implements AuthenticatedControllerInterface
 {
@@ -77,7 +78,29 @@ class PackageController extends AbstractActionController implements Authenticate
             foreach($result as $index => $resp) {
                 $response_package = json_decode($resp->getResult());
                 if(isset($response_package->outdated_packages)) {
-                    $packageAction = array_merge($response_package->outdated_packages,$packageAction);
+
+                    $getVersion = $mcProxyPatchService->getPackageVersion($host,$response_package->outdated_packages[0]->package, $environment->getNormalizedName(),$this->identity()->getLogin(),$action[0]->actionid);
+                    $requestid = $getVersion->result[0];
+                    $resultVersion = $actionHistory->getResultsByActionidRequestId($action[0]->actionid,$requestid,count($action[0]->discovered_nodes),10);
+
+                    if(count($resultVersion) != 0) {
+                        foreach($resultVersion as $indexV => $respV) {
+                            $version_package = json_decode($respV->getResult());
+                            if(isset($version_package->ensure)) {
+                                $packageAction[$response_package->outdated_packages[0]->package]['from_version'] = $version_package->ensure;
+                            }
+                            else {
+                                $packageAction[$response_package->outdated_packages[0]->package]['from_version'] = 'unknown';
+                            }
+                        }
+                    }
+                    else {
+                        $this->debug('No responses from Mcollective package::status agent !');
+                    }
+
+                    $packageAction[$response_package->outdated_packages[0]->package]['package'] = $response_package->outdated_packages[0]->package;
+                    $packageAction[$response_package->outdated_packages[0]->package]['repo'] = $response_package->outdated_packages[0]->repo;
+                    $packageAction[$response_package->outdated_packages[0]->package]['to_version'] = $response_package->outdated_packages[0]->version;
                 }
             }
             $packageAction=array_unique($packageAction,SORT_REGULAR);
@@ -105,6 +128,12 @@ class PackageController extends AbstractActionController implements Authenticate
         foreach($packages as $name => $detail) {
             $version = explode('-',$detail['version']);
             $pkg_arg[] = [ 'name' => $name, 'version' => $version[0], 'release' => $version[1] ];
+
+            $repository = $this->getServiceLocator()->get('SecurityLogsRepository');
+            $new_pkg = new SecurityLogs(date('Y-m-d G:i:s'),$this->identity()->getLogin(),$name,$detail['from_version'],$detail['version'],$host);
+            $repository->add($new_pkg);
+            // $lastId = $this->adapter->getDriver()->getLastGeneratedValue();
+            // $this->debug('lastID : ' . $lastId);
         }
         $action = $mcProxyPatchService->patchHost($host,$pkg_arg, $environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
         $requestid = $action->result[0];
