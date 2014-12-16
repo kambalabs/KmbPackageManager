@@ -24,7 +24,7 @@ use GtnPersistBase\Model\AggregateRootInterface;
 
 interface SecurityLogsInterface extends  AggregateRootInterface
 {
-    public function __construct($updated_at = null, $username = null, $package = null, $from_version = null, $to_version = null, $server = null );
+    public function __construct($updated_at = null, $username = null, $package = null, $from_version = null, $to_version = null, $server = null, $status = 'pending', $actionid = null );
 
     public function setId($id);
 
@@ -53,6 +53,14 @@ interface SecurityLogsInterface extends  AggregateRootInterface
     public function setServer($server);
 
     public function getServer();
+
+    public function setStatus($status);
+
+    public function getStatus();
+
+    public function setActionId($actionid);
+
+    public function getActionId();
 
     public function __toString();
 }

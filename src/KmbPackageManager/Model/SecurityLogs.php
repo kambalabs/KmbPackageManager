@@ -36,13 +36,22 @@ class SecurityLogs implements SecurityLogsInterface
 
     protected $server;
 
-    public function __construct($updated_at = null, $username = null, $package = null, $from_version = null, $to_version = null, $server = null ){
+    protected $status;
+
+    protected $actionid;
+
+    protected $requestid;
+
+    public function __construct($updated_at = null, $username = null, $package = null, $from_version = null, $to_version = null, $server = null, $status = 'pending', $actionid = null, $requestid = null ){
         $this->setUpdatedAt($updated_at);
         $this->setUsername($username);
         $this->setPackage($package);
         $this->setFromVersion($from_version);
         $this->setToVersion($to_version);
         $this->setServer($server);
+        $this->setStatus($status);
+        $this->setActionId($actionid);
+        $this->setRequestId($requestid);
 
         return $this;
     }
@@ -109,6 +118,33 @@ class SecurityLogs implements SecurityLogsInterface
 
     public function getServer() {
         return $this->server;
+    }
+
+    public function setStatus($status) {
+        $this->status = $status;
+        return $this;
+    }
+
+    public function getStatus() {
+        return $this->status;
+    }
+
+    public function setActionId($actionid) {
+        $this->actionid = $actionid;
+        return $this;
+    }
+
+    public function getActionId() {
+        return $this->actionid;
+    }
+
+    public function setRequestId($requestid) {
+        $this->requestid = $requestid;
+        return $this;
+    }
+
+    public function getRequestId() {
+        return $this->requestid;
     }
 
     public function __toString()

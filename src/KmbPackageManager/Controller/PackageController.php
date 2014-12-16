@@ -167,24 +167,39 @@ class PackageController extends AbstractActionController implements Authenticate
 
         $this->debug(print_r($packages,true));
         $pkg_arg = [];
+        $logs = [];
         foreach($packages as $name => $detail) {
             $version = explode('-',$detail['version']);
             $pkg_arg[] = [ 'name' => $name, 'version' => $version[0], 'release' => $version[1] ];
 
             $repository = $this->getServiceLocator()->get('SecurityLogsRepository');
-            $new_pkg = new SecurityLogs(date('Y-m-d G:i:s'),$this->identity()->getLogin(),$name,$detail['from_version'],$detail['version'],$host);
-            $repository->add($new_pkg);
-            // $lastId = $this->adapter->getDriver()->getLastGeneratedValue();
-            // $this->debug('lastID : ' . $lastId);
+            $log = new SecurityLogs(date('Y-m-d G:i:s'),$this->identity()->getLogin(),$name,$detail['from_version'],$detail['version'],$host,'pending',$actionid);
+            $repository->add($log);
+
+            $logs[$name] = $log;
         }
+
         $action = $mcProxyPatchService->patchHost($host,$pkg_arg, $environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
         $requestid = $action->result[0];
+
         $this->debug("Actionid : " . $actionid. ", Requestid : ". print_r($requestid,true));
         $result = $actionHistory->getResultsByActionidRequestId($actionid,$requestid,count($action->discovered_nodes),10);
         $registration = $mcProxyPatchService->registrationRun($host,$environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
         $actionHistory->getResultsByActionidRequestId($actionid,$registration->result[0],1,10);
 
         $status = $this->globalActionStatus($result);
+
+        foreach ($result as $r) {
+            $this->debug('RRRRR : ' . print_r(json_decode($r->getResult()),true));
+            foreach(json_decode($r->getResult())->packages as $pkg) {
+                $log = $logs[$pkg->name];
+                $pkg_status = ($pkg->status) == 0 ? 'success' : 'failure';
+                $log->setRequestId($r->getRequestId());
+                $log->setStatus($pkg_status);
+                $repository->update($log);
+            }
+        }
+
         return new JsonModel($status);
     }
 

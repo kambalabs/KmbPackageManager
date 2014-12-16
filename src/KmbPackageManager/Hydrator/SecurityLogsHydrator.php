@@ -34,6 +34,9 @@ class SecurityLogsHydrator implements HydratorInterface
             'from_version' => $object->getFromVersion(),
             'to_version'   => $object->getToVersion(),
             'server'       => $object->getServer(),
+            'status'       => $object->getStatus(),
+            'actionid'     => $object->getActionId(),
+            'requestid'    => $object->getRequestId(),
         ];
         return $data;
     }
@@ -46,6 +49,9 @@ class SecurityLogsHydrator implements HydratorInterface
         $object->setFromVersion($data['from_version']);
         $object->setToVersion($data['to_version']);
         $object->setServer($data['server']);
+        $object->setStatus($data['status']);
+        $object->setActionId($data['actionid']);
+        $object->setRequestId($data['requestid']);
         return $object;
     }
 }

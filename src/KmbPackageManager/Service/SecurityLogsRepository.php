@@ -32,25 +32,6 @@ use Zend\Db\Sql\Expression;
 
 class SecurityLogsRepository extends Repository implements SecurityLogsRepositoryInterface
 {
-    public function add(AggregateRootInterface $aggregateRoot)
-    {
-        $connection = $this->getDbAdapter()->getDriver()->getConnection()->beginTransaction();
-        try {
-            parent::add($aggregateRoot);
-            $connection->commit();
-        } catch (ExceptionInterface $e) {
-            $connection->rollback();
-            throw $e;
-        }
-
-        return $this;
-    }
-
-    public function update(AggregateRootInterface $aggregateRoot)
-    {
-        return $this;
-    }
-
     public function getAllFiltered($query = null, $orderBy=null, $limit=null , $offset=null)
     {
         $select = $this->getSelect();

@@ -246,6 +246,10 @@ return [
                     'decorator' => 'KmbPackageManager\View\Decorator\SecurityLogsServerDecorator',
                     'key'       => 'to_version',
                 ],
+                [
+                    'decorator' => 'KmbPackageManager\View\Decorator\SecurityLogsStatusDecorator',
+                    'key'       => 'status',
+                ],
             ]
         ]
     ],

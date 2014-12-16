@@ -27,6 +27,8 @@ CREATE INDEX host_vulnerability_vulnerability_id ON host_vulnerability (vulnerab
 CREATE INDEX host_vulnerability_host_id ON host_vulnerability (host_id);
 
 DROP TABLE IF EXISTS security_logs CASCADE;
+DROP TYPE IF EXISTS  status CASCADE;
+CREATE TYPE status AS ENUM ('pending', 'success', 'failure', 'cancelled');
 CREATE TABLE security_logs (
   id                       SERIAL              PRIMARY KEY,
   username                 VARCHAR(64)         NOT NULL,
@@ -34,8 +36,10 @@ CREATE TABLE security_logs (
   from_version             VARCHAR(32)         NOT NULL,
   to_version               VARCHAR(32)         NOT NULL,
   server                   VARCHAR(32)         NOT NULL,
-  updated_at               TIMESTAMP    NOT NULL
-
+  updated_at               TIMESTAMP    NOT NULL,
+  status                   status,
+  actionid                 VARCHAR(33)  NOT NULL,
+  requetid                 VARCHAR(33)  NOT NULL,
 );
 CREATE INDEX security_logs_username ON security_logs (username);
 CREATE INDEX security_logs_package ON security_logs (package);
