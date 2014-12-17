@@ -44,6 +44,8 @@ class Patch implements PatchInterface, ServiceLocatorAwareInterface
 
     protected $serviceLocator;
 
+    protected $contextAffectedHosts = [];
+
     /**
      * @param string   $name
      * @param string   $description
@@ -228,6 +230,37 @@ class Patch implements PatchInterface, ServiceLocatorAwareInterface
     {
         return in_array($host,$this->affectedHosts);
     }
+
+
+    /**
+     * Get affected host for current context
+     *
+     * @return string[]
+     */
+    public function getAffectedHostsInContext() {
+        return $this->contextAffectedHosts;
+    }
+
+    /**
+     * Set affected host for current context
+     *
+     * @return PatchInterface
+     */
+    public function setAffectedHostsInContext($hosts) {
+        $this->contextAffectedHosts = $hosts;
+        return $this;
+    }
+
+    /**
+     * Add an affected host for current context
+     *
+     * @return PatchInterface
+     */
+    public function addAffectedHostsInContext($host) {
+        $this->contextAffectedHosts[] = $host;
+        return $this;
+    }
+
 
     public function setServiceLocator(ServiceLocatorInterface $serviceLocator) {
         $this->serviceLocator = $serviceLocator;

@@ -33,6 +33,38 @@ return [
                     ],
                 ],
             ],
+            'package-manager-generic-prepatch' => [
+                'type' => 'Segment',
+                'options' => [
+                    'route' => '/env/:envId/pre-patch/:patch[/server/:server]',
+                    'constraints' => [
+                        'envId' => '[0-9]+',
+                        'server' => '[0-9a-zA-Z\.\-]+',
+                        'patch' => '[0-9a-zA-Z\-]+',
+                    ],
+                    'defaults' => [
+                        '__NAMESPACE__' => 'KmbPackageManager\Controller',
+                        'controller' => 'Package',
+                        'action' => 'prePatch',
+                    ],
+                ],
+            ],
+            'package-manager-generic-patch' => [
+                'type' => 'Segment',
+                'options' => [
+                    'route' => '/env/:envId/patch-apply/:patch[/servers/:server]',
+                    'constraints' => [
+                        'envId' => '[0-9]+',
+                        'server' => '[0-9a-zA-Z\.\-]+',
+                        'patch' => '[0-9a-zA-Z\-]+',
+                    ],
+                    'defaults' => [
+                        '__NAMESPACE__' => 'KmbPackageManager\Controller',
+                        'controller' => 'Package',
+                        'action' => 'patch',
+                    ],
+                ],
+            ],
             'package-manager-prepatchAll' => [
                 'type' => 'Segment',
                 'options' => [
@@ -260,6 +292,9 @@ return [
             ],
         ],
     ],
-    // 'service_manager' => [
-    // ],
+    'service_manager' => [
+        'factories' => [
+            'KmbPackageManager\Service\AvailableFix' => 'KmbPackageManager\Service\AvailableFixCollectorFactory',
+        ],
+    ],
 ];

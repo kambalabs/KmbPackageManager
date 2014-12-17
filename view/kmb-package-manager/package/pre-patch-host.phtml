@@ -2,7 +2,7 @@
   <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
   <h2 class="modal-title"><?= $this->translate('Package Installation')?></h2>
 </div>
-<form class="form-horizontal" data-async action="<?php echo $this->url('package-manager-patch', ['action' => 'patchHost','server' => $host ], [], true) ?>" method="POST">
+<form class="form-horizontal" data-async action="<?php echo $this->url('package-manager-generic-patch', ['action' => 'patchHost','server' => $host, 'patch' => $patch->getPublicId()], [], true) ?>" method="POST">
   <input type="hidden" value="<?= $actionid ?>" name="actionid"/>
   <div class="modal-body">
       <div class="alert alert-<?= $divalert ?>"><?php if ($result['status'] === 'success'): ?>
@@ -22,12 +22,12 @@
 	      <th><?= $this->translate('Repository') ?></th>
           </thead>
           <tbody id="PackageListToUpgrade">
-	      <?php foreach($packages as $package => $info): ?>
-	      <tr><td><?= $package ?></td><td><?= $info['from_version'] ?><input type="hidden" value="<?= $info['from_version'] ?>" name="package[<?= $package ?>][from_version]"/></td><td><?= $info['to_version'] ?><input type="hidden" value="<?= $info['to_version'] ?>" name="package[<?= $package ?>][version]"/></td><td><?= $info['repo'] ?></td></tr>
+	      <?php foreach($packages[$host] as $package => $info): ?>
+	      <tr><td><?= $info->package ?></td><td><?= $info->from_version ?><input type="hidden" value="<?= $info->from_version ?>" name="package[<?= $info->package ?>][from_version]"/></td><td><?= $info->version ?><input type="hidden" value="<?= $info->version ?>" name="package[<?= $info->package ?>][version]"/></td><td><?= $info->repo ?></td></tr>
 	      <?php endforeach ?>
           </tbody>
       </table>
-  </div>
+     </div>
   <div class="modal-footer">
       <button type="button" class="btn btn-default" data-dismiss="modal"><?= $this->translate('Cancel') ?></button>
       <button type="submit" class="btn btn-primary"><?= $this->translate('Install Package') ?></button>

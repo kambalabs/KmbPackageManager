@@ -24,7 +24,7 @@ $(document).ready(function() {
 		$("a").attr("disabled", false);
 	    }
 	});
-	
+
     });
     $(document).on('submit','form[data-async]', function(event) {
 	var $form = $(this);
@@ -69,7 +69,7 @@ $(document).ready(function() {
 			title: 'Patch',
 			text: 'Patch NOT applied. <br/>'+ $error_list,
 			class_name: 'gritter-danger',
-		    });		    
+		    });
 		}
 	    },
 	    error: function(data, status) {
@@ -112,6 +112,6 @@ $(document).ready(function() {
 		$(":input").attr("disabled", false);
 		$("a").attr("disabled", false);
 	    }
-	});	
+	});
     });
 });

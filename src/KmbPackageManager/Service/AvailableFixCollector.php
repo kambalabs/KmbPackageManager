@@ -81,7 +81,26 @@ class AvailableFixCollector implements CollectorInterface
             $environment_hosts[] = $node->getName();
         }
         $patchList = $this->patchRepository->getAllByHostList($environment_hosts, $dtquery, $orderBy, $limit, $offset);
-        return Collection::factory($patchList, $limit, $this->patchRepository->countAllByHostList($environment_hosts));
+        $processedPatchList = [];
+        foreach($patchList as $index => $patch) {
+            $processedPatchList[] = $patch->setAffectedHostsInContext(array_intersect($patch->getAffectedHosts(),$environment_hosts));
+        }
+        return Collection::factory($processedPatchList, $limit, $this->patchRepository->countAllByHostList($environment_hosts));
+    }
+
+    public function getPatchInContext($id,$environment) {
+        $environments = $this->permissionEnvironmentService->getAllReadable(isset($environment) ? $environment : null);
+        $queryEnvironment = null;
+        $queryEnvironment = $this->nodesEnvironmentsQueryBuilder->build($environments)->getData();
+        $nodesCollection = $this->getNodeService()->getAll($queryEnvironment);
+        $environment_hosts = [];
+        foreach($nodesCollection as $node) {
+            $environment_hosts[] = $node->getName();
+        }
+        $patch = $this->patchRepository->getByPublicId($id);
+        $processedPatchList = [];
+        $processedPatchList[] = $patch->setAffectedHostsInContext(array_intersect($patch->getAffectedHosts(),$environment_hosts));
+        return Collection::factory($processedPatchList, null, 1);
     }
 
     /**

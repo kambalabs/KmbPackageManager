@@ -38,7 +38,7 @@ class NbServersDecorator extends AbstractDecorator
      */
     public function decorateValue($object)
     {
-
-        return '<span class="label label-uniform-large label-info">'. sizeof($object->getAffectedHosts()) . ' '. $this->translate('servers') .'</span>';
+        error_log(print_r($object->getAffectedHostsInContext(),true));
+        return '<span class="label label-uniform-large label-info">'. sizeof($object->getAffectedHostsInContext()) . ' '. $this->translate('servers') .'</span>';
     }
 }

@@ -64,70 +64,25 @@ class PackageController extends AbstractActionController implements Authenticate
     }
 
 
-    public function prePatchHostAction(){
+
+    public function prePatchAction(){
+        // Get from service locator
         $environment = $this->getServiceLocator()->get('EnvironmentRepository')->getById($this->params()->fromRoute('envId'));
+        $mcProxyPatchService = $this->getServiceLocator()->get('mcProxyPatchService');
+        $actionHistory = $this->getServiceLocator()->get('McollectiveHistoryRepository');
+        $fixCollector = $this->getServiceLocator()->get('KmbPackageManager\Service\AvailableFix');
+
+        // Get from params
         $host = $this->params()->fromRoute('server');
-        $package =  explode(',',$this->params()->fromPost('packages'));
-        $mcProxyPatchService = $this->getServiceLocator()->get('mcProxyPatchService');
-        $actionHistory = $this->getServiceLocator()->get('McollectiveHistoryRepository');
-
-        $action = $mcProxyPatchService->prepatchHost($host,$package,$environment->getNormalizedName(),$this->identity()->getLogin());
-        $result = $actionHistory->getResultsByActionid($action[0]->actionid,(count($action[0]->discovered_nodes)*count($package)),10);
-        if(count($result) != 0) {
-            $packageAction = [];
-            foreach($result as $index => $resp) {
-                $response_package = json_decode($resp->getResult());
-                if(isset($response_package->outdated_packages)) {
-
-                    $getVersion = $mcProxyPatchService->getPackageVersion($host,$response_package->outdated_packages[0]->package, $environment->getNormalizedName(),$this->identity()->getLogin(),$action[0]->actionid);
-                    $requestid = $getVersion->result[0];
-                    $resultVersion = $actionHistory->getResultsByActionidRequestId($action[0]->actionid,$requestid,count($action[0]->discovered_nodes),10);
-
-                    if(count($resultVersion) != 0) {
-                        foreach($resultVersion as $indexV => $respV) {
-                            $version_package = json_decode($respV->getResult());
-                            if(isset($version_package->ensure)) {
-                                $packageAction[$response_package->outdated_packages[0]->package]['from_version'] = $version_package->ensure;
-                            }
-                            else {
-                                $packageAction[$response_package->outdated_packages[0]->package]['from_version'] = 'unknown';
-                            }
-                        }
-                    }
-                    else {
-                        $this->debug('No responses from Mcollective package::status agent !');
-                    }
-
-                    $packageAction[$response_package->outdated_packages[0]->package]['package'] = $response_package->outdated_packages[0]->package;
-                    $packageAction[$response_package->outdated_packages[0]->package]['repo'] = $response_package->outdated_packages[0]->repo;
-                    $packageAction[$response_package->outdated_packages[0]->package]['to_version'] = $response_package->outdated_packages[0]->version;
-                }
-            }
-            $packageAction=array_unique($packageAction,SORT_REGULAR);
+        $patchName = $this->params()->fromRoute('patch');
+        $patch = $fixCollector->getPatchInContext($patchName,$environment)->getData()[0];
+        if(! isset($host)) {
+            $host = $patch->getAffectedHostsInContext();
         }
+        $package =  $patch->getPackages();
 
-        $checkResult = $this->globalActionStatus($result);
-        $divalert = ($checkResult['status'] === 'success') ? 'success' : 'danger';
-        // CHECK
-        $html = new ViewModel(['packages' => $packageAction, 'host' => $host, 'actionid' => $action[0]->actionid, 'result' => $checkResult, 'divalert' => $divalert, 'agent' => $result[0]->getAgent(), 'action' => $result[0]->getAction() ]);
-        $html->setTerminal(true);
-        return $html;
-    }
-
-    public function prePatchAllHostAction(){
-        $environment = $this->getServiceLocator()->get('EnvironmentRepository')->getById($this->params()->fromRoute('envId'));
-        $patch = $this->getServiceLocator()->get('PatchRepository')->getByPublicId( $this->params()->fromRoute('patch'));
-        $patch->setServiceLocator($this->getServiceLocator());
-        $mcProxyPatchService = $this->getServiceLocator()->get('mcProxyPatchService');
-
-        // CHECK servers from post or kamba ?
-        $servers = $this->params()->fromPost('servers');
-        // ENDCHECK
-        $actionHistory = $this->getServiceLocator()->get('McollectiveHistoryRepository');
-
-        $action = $mcProxyPatchService->prepatchBatch($patch->getAffectedHostsFor($environment),$patch->getPackages(),$environment->getNormalizedName(),$this->identity()->getLogin());
-        $result = $actionHistory->getResultsByActionid($action[0]->actionid, (count($action[0]->discovered_nodes)*count($patch->getPackages())), 10);
-
+        $action = $mcProxyPatchService->prepatch($host,$package,$environment->getNormalizedName(),$this->identity()->getLogin());
+        $result = $actionHistory->getResultsByActionid($action[0]->actionid,(count($action[0]->discovered_nodes)*count($package)),10);
         if(count($result) != 0) {
             $packageAction = [];
             foreach($result as $index => $resp) {
@@ -136,101 +91,132 @@ class PackageController extends AbstractActionController implements Authenticate
                 if(!isset($packageAction[$resp->getHostname()])) {
                     $packageAction[$resp->getHostname()] = [];
                 }
-                if(isset($response_package->outdated_packages)) {
+                if(isset($response_package->outdated_packages) && count($response_package->outdated_packages) != 0 ) {
                     $packageAction[$resp->getHostname()] = array_merge($response_package->outdated_packages,$packageAction[$resp->getHostname()]);
                 }
-                $this->debug($packageAction);
-            }
-            foreach($packageAction as $hostname => $pkg) {
-                $packageAction[$hostname]=array_unique($packageAction[$hostname],SORT_REGULAR);
+                foreach($packageAction as $hostname => $pkg) {
+                    $packageAction[$hostname]=array_unique($packageAction[$hostname],SORT_REGULAR);
+                }
             }
         }
+        foreach($packageAction as $host => $pkg_list) {
+            $packageAction[$host]=array_unique($pkg_list,SORT_REGULAR);
+        }
 
-        $this->debug($packageAction);
         $checkResult = $this->globalActionStatus($result);
         $divalert = ($checkResult['status'] === 'success') ? 'success' : 'danger';
-        // CHECK
-        $html = new ViewModel(['packages' => $packageAction, 'actionid' => $action[0]->actionid, 'result' => $checkResult, 'divalert' => $divalert, 'agent' => $result[0]->getAgent(), 'action' => $result[0]->getAction(), 'patch' => $patch->getPublicId() ]);
+
+        $this->debug(print_r($packageAction,true));
+
+        $html = new ViewModel(['packages' => $packageAction, 'host' => $host, 'actionid' => $action[0]->actionid, 'result' => $checkResult, 'divalert' => $divalert, 'agent' => $result[0]->getAgent(), 'action' => $result[0]->getAction(), 'patch' => $patch ]);
+        if($this->params()->fromRoute('server') != null) {
+            $html->setTemplate('kmb-package-manager/package/pre-patch-host.phtml');
+        } else {
+            $html->setTemplate('kmb-package-manager/package/pre-patch-all-host.phtml');
+        }
         $html->setTerminal(true);
         return $html;
-        return new JsonModel(['result' => $action]);
     }
 
 
-    public function patchHostAction() {
+    public function patchAction() {
+        $this->debug("Starting patch Action");
         $environment = $this->getServiceLocator()->get('EnvironmentRepository')->getById($this->params()->fromRoute('envId'));
-        $host = $this->params()->fromRoute('server');
         $actionid = $this->params()->fromPost('actionid');
         $packages =  $this->params()->fromPost('package');
+
         $mcProxyPatchService = $this->getServiceLocator()->get('mcProxyPatchService');
         $actionHistory = $this->getServiceLocator()->get('McollectiveHistoryRepository');
+        $patchName = $this->params()->fromPost('patch');
+        $patch = $this->getServiceLocator()->get('KmbPackageManager\Service\AvailableFix')->getPatchInContext($patchName,$environment)->getData()[0];
+        $host = $this->params()->fromRoute('server');
+        if(! isset($host)) {
+            $host = $patch->getAffectedHostsInContext();
+        }
+        $this->debug("Packages : " . print_r($packages,true));
 
-        $this->debug(print_r($packages,true));
         $pkg_arg = [];
         $logs = [];
         foreach($packages as $name => $detail) {
             $version = explode('-',$detail['version']);
             $pkg_arg[] = [ 'name' => $name, 'version' => $version[0], 'release' => $version[1] ];
-
             $repository = $this->getServiceLocator()->get('SecurityLogsRepository');
             $log = new SecurityLogs(date('Y-m-d G:i:s'),$this->identity()->getLogin(),$name,$detail['from_version'],$detail['version'],$host,'pending',$actionid);
             $repository->add($log);
-
             $logs[$name] = $log;
         }
-
-        $action = $mcProxyPatchService->patchHost($host,$pkg_arg, $environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
+        $action = $mcProxyPatchService->patch($host,$pkg_arg, $environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
         $requestid = $action->result[0];
 
-        $this->debug("Actionid : " . $actionid. ", Requestid : ". print_r($requestid,true));
-        $result = $actionHistory->getResultsByActionidRequestId($actionid,$requestid,count($action->discovered_nodes),10);
-        $registration = $mcProxyPatchService->registrationRun($host,$environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
-        $actionHistory->getResultsByActionidRequestId($actionid,$registration->result[0],1,10);
-
-        $status = $this->globalActionStatus($result);
-
-        foreach ($result as $r) {
-            $this->debug('RRRRR : ' . print_r(json_decode($r->getResult()),true));
-            foreach(json_decode($r->getResult())->packages as $pkg) {
-                $log = $logs[$pkg->name];
-                $pkg_status = ($pkg->status) == 0 ? 'success' : 'failure';
-                $log->setRequestId($r->getRequestId());
-                $log->setStatus($pkg_status);
-                $repository->update($log);
-            }
-        }
-
-        return new JsonModel($status);
+        return new JsonModel(['actionid' => $actionid, 'requestid' => $requestid]);
     }
 
 
-    public function patchAllHostAction() {
-        $environment = $this->getServiceLocator()->get('EnvironmentRepository')->getById($this->params()->fromRoute('envId'));
-        $actionid = $this->params()->fromPost('actionid');
-        $packages =  $this->params()->fromPost('package');
+    //     public function patchHostAction() {
+    //     $pkg_arg = [];
+    //     $logs = [];
+    //     foreach($packages as $name => $detail) {
+    //         $version = explode('-',$detail['version']);
+    //         $pkg_arg[] = [ 'name' => $name, 'version' => $version[0], 'release' => $version[1] ];
 
-        $mcProxyPatchService = $this->getServiceLocator()->get('mcProxyPatchService');
-        $actionHistory = $this->getServiceLocator()->get('McollectiveHistoryRepository');
-        $patch = $this->getServiceLocator()->get('PatchRepository')->getByPublicId( $this->params()->fromRoute('patch'));
-        $patch->setServiceLocator($this->getServiceLocator());
+    //         $repository = $this->getServiceLocator()->get('SecurityLogsRepository');
+    //         $log = new SecurityLogs(date('Y-m-d G:i:s'),$this->identity()->getLogin(),$name,$detail['from_version'],$detail['version'],$host,'pending',$actionid);
+    //         $repository->add($log);
+
+    //         $logs[$name] = $log;
+    //     }
+
+    //     $action = $mcProxyPatchService->patchHost($host,$pkg_arg, $environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
+    //     $requestid = $action->result[0];
+
+    //     $this->debug("Actionid : " . $actionid. ", Requestid : ". print_r($requestid,true));
+    //     $result = $actionHistory->getResultsByActionidRequestId($actionid,$requestid,count($action->discovered_nodes),10);
+    //     $registration = $mcProxyPatchService->registrationRun($host,$environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
+    //     $actionHistory->getResultsByActionidRequestId($actionid,$registration->result[0],1,10);
+
+    //     $status = $this->globalActionStatus($result);
+
+    //     foreach ($result as $r) {
+    //         $this->debug('RRRRR : ' . print_r(json_decode($r->getResult()),true));
+    //         foreach(json_decode($r->getResult())->packages as $pkg) {
+    //             $log = $logs[$pkg->name];
+    //             $pkg_status = ($pkg->status) == 0 ? 'success' : 'failure';
+    //             $log->setRequestId($r->getRequestId());
+    //             $log->setStatus($pkg_status);
+    //             $repository->update($log);
+    //         }
+    //     }
+
+    //     return new JsonModel($status);
+    // }
+
+    // public function patchAllHostAction() {
+    //     $environment = $this->getServiceLocator()->get('EnvironmentRepository')->getById($this->params()->fromRoute('envId'));
+    //     $actionid = $this->params()->fromPost('actionid');
+    //     $packages =  $this->params()->fromPost('package');
+
+    //     $mcProxyPatchService = $this->getServiceLocator()->get('mcProxyPatchService');
+    //     $actionHistory = $this->getServiceLocator()->get('McollectiveHistoryRepository');
+    //     $patch = $this->getServiceLocator()->get('PatchRepository')->getByPublicId( $this->params()->fromRoute('patch'));
+    //     $patch->setServiceLocator($this->getServiceLocator());
 
 
-        $pkg_arg = [];
-        foreach($packages as $name => $detail) {
-            $version = explode('-',$detail['version']);
-            $pkg_arg[] = [ 'name' => $name, 'version' => $version[0], 'release' => $version[1] ];
-        }
+    //     $pkg_arg = [];
+    //     foreach($packages as $name => $detail) {
+    //         $version = explode('-',$detail['version']);
+    //         $pkg_arg[] = [ 'name' => $name, 'version' => $version[0], 'release' => $version[1] ];
+    //     }
 
-        $action = $mcProxyPatchService->patchBatch($patch->getAffectedHostsFor($environment),$pkg_arg, $environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
-        $requestid = $action->result[0];
-        $this->debug("Actionid : " . $actionid. ", Requestid : ". print_r($requestid,true));
-        $result = $actionHistory->getResultsByActionidRequestId($actionid,$requestid,count($action->discovered_nodes),29);
-        $registration = $mcProxyPatchService->registrationRun($patch->getAffectedHostsFor($environment),$environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
-        $actionHistory->getResultsByActionidRequestId($actionid,$registration->result[0],count($registration->discovered_nodes),10);
+    //     $action = $mcProxyPatchService->patchBatch($patch->getAffectedHostsFor($environment),$pkg_arg, $environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
+    //     $requestid = $action->result[0];
+    //     $this->debug("Actionid : " . $actionid. ", Requestid : ". print_r($requestid,true));
+    //     $result = $actionHistory->getResultsByActionidRequestId($actionid,$requestid,count($action->discovered_nodes),29);
+    //     $registration = $mcProxyPatchService->registrationRun($patch->getAffectedHostsFor($environment),$environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
+    //     $actionHistory->getResultsByActionidRequestId($actionid,$registration->result[0],count($registration->discovered_nodes),10);
 
-        $status = $this->globalActionStatus($result);
-        return new JsonModel($status);
-    }
+    //     $status = $this->globalActionStatus($result);
+    //     return new JsonModel($status);
+    // }
 
     public function globalActionStatus($result) {
         $status = "";

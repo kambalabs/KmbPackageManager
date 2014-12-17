@@ -78,7 +78,7 @@ interface PatchInterface extends  AggregateRootInterface
      */
     public function addPackage($package);
 
-    
+
     /**
      * Get Packages.
      *
@@ -100,7 +100,7 @@ interface PatchInterface extends  AggregateRootInterface
      * @return string[]
      */
     public function getAffectedHosts();
-    
+
     /**
      * Add an affected Host
      *
@@ -123,8 +123,27 @@ interface PatchInterface extends  AggregateRootInterface
      */
     public function isaffected($host);
 
+    /**
+     * Get affected host for current context
+     *
+     * @return string[]
+     */
+    public function getAffectedHostsInContext();
 
-    
+    /**
+     * Set affected host for current context
+     *
+     * @return PatchInterface
+     */
+    public function setAffectedHostsInContext($hosts);
+
+    /**
+     * Add an affected host for current context
+     *
+     * @return PatchInterface
+     */
+    public function addAffectedHostsInContext($host);
+
     /**
      * @return string
      */

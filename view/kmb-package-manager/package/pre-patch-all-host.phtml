@@ -2,7 +2,7 @@
   <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
   <h2 class="modal-title"><?= $this->translate('Package Installation')?></h2>
 </div>
-<form class="form-horizontal" data-async action="<?php echo $this->url('package-manager-patch-all', ['action' => 'patchHost','patch' => $patch ], [], true) ?>" method="POST">
+<form class="form-horizontal" data-async action="<?php echo $this->url('package-manager-generic-patch', ['action' => 'patchHost','patch' => $patch ], [], true) ?>" method="POST">
   <input type="hidden" value="<?= $actionid ?>" name="actionid"/>
   <div class="modal-body">
       <div class="alert alert-<?= $divalert ?>"><?php if ($result['status'] === 'success'): ?>
@@ -31,13 +31,14 @@
                           <thead>
 	                      <tr>
 	                          <th><?= $this->translate('Package') ?></th>
-	                          <th><?= $this->translate('Version') ?></th>
+     	                          <th><?= $this->translate('From Version') ?></th>
+	                          <th><?= $this->translate('To Version') ?></th>
 	                          <th><?= $this->translate('Repository') ?></th>
 	                      </tr>
                           </thead>
                           <tbody id="PackageListToUpgrade">
 	                      <?php foreach($pkglist as $index => $package): ?>
-	                      <tr><td><?= $package->package ?></td><td><?= $package->version ?><input type="hidden" value="<?= $package->version ?>" name="package[<?= $package->package ?>][version]"/></td><td><?= $package->repo ?></td></tr>
+	                      <tr><td><?= $package->package ?></td><td><?= $package->from_version ?><input type="hidden" value="<?= $package->from_version ?>" name="package[<?= $package->package ?>][from_version]"/></td><td><?= $package->version ?><input type="hidden" value="<?= $package->version ?>" name="package[<?= $package->package ?>][version]"/></td><td><?= $package->repo ?></td></tr>
 	                      <?php endforeach ?>
                           </tbody>
                       </table>
