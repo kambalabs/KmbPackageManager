@@ -14,26 +14,44 @@ function getResult(data,id,discovered_nodes,refreshResult) {
 		$(":input").attr("disabled", false);
 		$("a").attr("disabled", false);
 
-                console.log(data);
+                // 0 => all ok
+                // 1 => partial failure
+                // 2 => failure
 
+                var globalStatus = 0;
+                var errorCount = 0;
                 $.each(data, function(index, obj) {
-                    if(obj['statuscode'] == 0) {
-		        $.gritter.add({
-			    title: 'Patch',
-			    text: 'Patch applied successfully',
-			    class_name: 'gritter-success',
-		        });
-		        location.reload(true);
+                    if(obj['statuscode'] != 0) {
+                        globalStatus = 1;
+                        errorCount += 1;
                     }
-                    else
-                    {
-                        $.gritter.add({
-			    title: 'Patch',
-			    text: 'Patch NOT applied.',
-			    class_name: 'gritter-danger',
-		        });
+
+                    if (errorCount == discovered_nodes) {
+                        globalStatus = 2;
                     }
                 });
+
+                if (globalStatus == 0) {
+                    $.gritter.add({
+			title: 'Patch',
+			text: 'Patch applied successfully',
+			class_name: 'gritter-success',
+		    });
+		    location.reload(true);
+                } else if(globalStatus == 1) {
+                    $.gritter.add({
+			title: 'Patch',
+			text: 'Patch partially applied.<br/>See logs for details',
+			class_name: 'gritter-warning',
+		    });
+                } else {
+                    $.gritter.add({
+			title: 'Patch',
+			text: 'Patch NOT applied.<br/>See logs for details',
+			class_name: 'gritter-danger',
+		    });
+                }
+
             }
         }
     });
