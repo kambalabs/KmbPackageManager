@@ -54,6 +54,20 @@ class SecurityLogsRepository extends Repository implements SecurityLogsRepositor
         return $result;
     }
 
+    public function getLogForHostByActionIdRequestId($actionid,$requestid,$hostname) {
+        $select = $this->getSlaveSql()->select()->from($this->tableName);
+        $select ->where
+            ->equalTo('actionid',$actionid)
+            ->and
+            ->equalTo('requestid',$requestid)
+            ->and
+            ->equalTo('server',$hostname)
+            ->and
+            ->equalTo('status','pending');
+        $result = $this->hydrateAggregateRootsFromResult($this->performRead($select));
+        return count($result) > 0 ? $result[0] : null;
+    }
+
     public function getAll() {
         $select = $this->getSlaveSql()->select()->from($this->tableName);
         return $this->hydrateAggregateRootsFromResult($this->performRead($select));

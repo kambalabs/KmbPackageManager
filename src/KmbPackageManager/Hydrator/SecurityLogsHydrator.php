@@ -43,6 +43,7 @@ class SecurityLogsHydrator implements HydratorInterface
 
     public function hydrate(array $data, $object)
     {
+        $object->setId($data['id']);
         $object->setUpdatedAt($data['updated_at']);
         $object->setUsername($data['username']);
         $object->setPackage($data['package']);

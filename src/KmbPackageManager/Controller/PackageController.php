@@ -133,24 +133,75 @@ class PackageController extends AbstractActionController implements Authenticate
         if(! isset($host)) {
             $host = $patch->getAffectedHostsInContext();
         }
-        $this->debug("Packages : " . print_r($packages,true));
+        $common_pkg= [];
+        $diff = [];
+        $donepkg = [];
+        $requestids=[];
+        do {
+            /**
+             *Some explanations needed ...
+             * To avoid installing packages on hosts and reducing the number of mco req.
+             * groups are made to apply patches with the smallest common packages at each run.
+             * * common_pkg is the list of packages to apply
+             * * host_list is the list of hosts to apply those packages
+             * * diff keep tracks of excluded packages (not in common packages)
+             * * donepkg keep tracks of already installed patches
+             *
+             **/
+            $common_pkg = $diff;
+            $hostlist = [];
+            foreach($packages as $hostname => $pkgs)
+            {
+                $process = $this->getSmallestGroup($common_pkg,$pkgs,$donepkg);
+                if(!empty($process['group'])) {
+                    $hostlist[] = $hostname;
+                }
+                $common_pkg = $process['group'];
+                $diff=$process['diff'];
+            }
+            $donepkg = array_merge($donepkg,$common_pkg);
 
-        $pkg_arg = [];
-        $logs = [];
-        foreach($packages as $name => $detail) {
-            $version = explode('-',$detail['version']);
-            $pkg_arg[] = [ 'name' => $name, 'version' => $version[0], 'release' => $version[1] ];
-            $repository = $this->getServiceLocator()->get('SecurityLogsRepository');
-            $log = new SecurityLogs(date('Y-m-d G:i:s'),$this->identity()->getLogin(),$name,$detail['from_version'],$detail['version'],$host,'pending',$actionid);
-            $repository->add($log);
-            $logs[$name] = $log;
-        }
-        $action = $mcProxyPatchService->patch($host,$pkg_arg, $environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
-        $requestid = $action->result[0];
+            $pkg_arg = [];
+            foreach($common_pkg as $name => $detail) {
+                $version = explode('-',$detail['version']);
+                $pkg_arg[] = [ 'name' => $name, 'version' => $version[0], 'release' => $version[1] ];
+            }
+            $logs = [];
+            $action = $mcProxyPatchService->patch($hostlist,$pkg_arg, $environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
+            $this->insertSecurityLog($common_pkg,$hostlist,$actionid,$action->result[0],$this->identity());
+            $requestids[] = $action->result[0];
+        } while(! empty($diff));
 
-        return new JsonModel(['actionid' => $actionid, 'requestid' => $requestid]);
+        return new JsonModel(['actionid' => $actionid, 'requestid' => $requestids]);
     }
 
+
+    public function insertSecurityLog($packages,$hosts,$actionid,$requestid,$identity) {
+        foreach($hosts as $index => $host)
+        {
+            foreach($packages as $name => $detail) {
+                $repository = $this->getServiceLocator()->get('SecurityLogsRepository');
+                $log = new SecurityLogs(date('Y-m-d G:i:s'),$identity->getLogin(),$name,$detail['from_version'],$detail['version'],$host,'pending',$actionid,$requestid);
+                $repository->add($log);
+                $logs[$name] = $log;
+            }
+        }
+
+    }
+
+    public function getSmallestGroup($reference,$array,$strip = []) {
+        ksort($reference);
+        ksort($array);
+        ksort($strip);
+        if(empty($reference)) {
+            $reference = $array;
+            $diff = [];
+        }else{
+            $diff = array_diff_assoc($array,$reference);
+            $reference = array_intersect_assoc($reference,$array);
+        }
+        return [ 'group' => array_diff_assoc($reference,$strip), 'diff' => $diff ];
+    }
 
     //     public function patchHostAction() {
     //     $pkg_arg = [];
@@ -190,33 +241,6 @@ class PackageController extends AbstractActionController implements Authenticate
     //     return new JsonModel($status);
     // }
 
-    // public function patchAllHostAction() {
-    //     $environment = $this->getServiceLocator()->get('EnvironmentRepository')->getById($this->params()->fromRoute('envId'));
-    //     $actionid = $this->params()->fromPost('actionid');
-    //     $packages =  $this->params()->fromPost('package');
-
-    //     $mcProxyPatchService = $this->getServiceLocator()->get('mcProxyPatchService');
-    //     $actionHistory = $this->getServiceLocator()->get('McollectiveHistoryRepository');
-    //     $patch = $this->getServiceLocator()->get('PatchRepository')->getByPublicId( $this->params()->fromRoute('patch'));
-    //     $patch->setServiceLocator($this->getServiceLocator());
-
-
-    //     $pkg_arg = [];
-    //     foreach($packages as $name => $detail) {
-    //         $version = explode('-',$detail['version']);
-    //         $pkg_arg[] = [ 'name' => $name, 'version' => $version[0], 'release' => $version[1] ];
-    //     }
-
-    //     $action = $mcProxyPatchService->patchBatch($patch->getAffectedHostsFor($environment),$pkg_arg, $environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
-    //     $requestid = $action->result[0];
-    //     $this->debug("Actionid : " . $actionid. ", Requestid : ". print_r($requestid,true));
-    //     $result = $actionHistory->getResultsByActionidRequestId($actionid,$requestid,count($action->discovered_nodes),29);
-    //     $registration = $mcProxyPatchService->registrationRun($patch->getAffectedHostsFor($environment),$environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
-    //     $actionHistory->getResultsByActionidRequestId($actionid,$registration->result[0],count($registration->discovered_nodes),10);
-
-    //     $status = $this->globalActionStatus($result);
-    //     return new JsonModel($status);
-    // }
 
     public function globalActionStatus($result) {
         $status = "";

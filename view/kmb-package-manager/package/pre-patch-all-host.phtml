@@ -38,7 +38,7 @@
                           </thead>
                           <tbody id="PackageListToUpgrade">
 	                      <?php foreach($pkglist as $index => $package): ?>
-	                      <tr><td><?= $package->package ?></td><td><?= $package->from_version ?><input type="hidden" value="<?= $package->from_version ?>" name="package[<?= $package->package ?>][from_version]"/></td><td><?= $package->version ?><input type="hidden" value="<?= $package->version ?>" name="package[<?= $package->package ?>][version]"/></td><td><?= $package->repo ?></td></tr>
+	                      <tr><td><?= $package->package ?></td><td><?= $package->from_version ?><input type="hidden" value="<?= $package->from_version ?>" name="package[<?= $hostname ?>][<?= $package->package ?>][from_version]"/></td><td><?= $package->version ?><input type="hidden" value="<?= $package->version ?>" name="package[<?= $hostname ?>][<?= $package->package ?>][version]"/></td><td><?= $package->repo ?></td></tr>
 	                      <?php endforeach ?>
                           </tbody>
                       </table>

@@ -23,7 +23,7 @@
           </thead>
           <tbody id="PackageListToUpgrade">
 	      <?php foreach($packages[$host] as $package => $info): ?>
-	      <tr><td><?= $info->package ?></td><td><?= $info->from_version ?><input type="hidden" value="<?= $info->from_version ?>" name="package[<?= $info->package ?>][from_version]"/></td><td><?= $info->version ?><input type="hidden" value="<?= $info->version ?>" name="package[<?= $info->package ?>][version]"/></td><td><?= $info->repo ?></td></tr>
+	      <tr><td><?= $info->package ?></td><td><?= $info->from_version ?><input type="hidden" value="<?= $info->from_version ?>" name="package[<?= $host ?>][<?= $info->package ?>][from_version]"/></td><td><?= $info->version ?><input type="hidden" value="<?= $info->version ?>" name="package[<?= $host ?>][<?= $info->package ?>][version]"/></td><td><?= $info->repo ?></td></tr>
 	      <?php endforeach ?>
           </tbody>
       </table>

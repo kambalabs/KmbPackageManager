@@ -18,21 +18,6 @@ return [
                     ],
                 ],
             ],
-            'package-manager-prepatch' => [
-                'type' => 'Segment',
-                'options' => [
-                    'route' => '/env/:envId/servers/:server/pre-patch',
-                    'constraints' => [
-                        'envId' => '[0-9]+',
-                        'server' => '[0-9a-zA-Z\.\-]+',
-                    ],
-                    'defaults' => [
-                        '__NAMESPACE__' => 'KmbPackageManager\Controller',
-                        'controller' => 'Package',
-                        'action' => 'prePatchHost',
-                    ],
-                ],
-            ],
             'package-manager-generic-prepatch' => [
                 'type' => 'Segment',
                 'options' => [
@@ -65,51 +50,6 @@ return [
                     ],
                 ],
             ],
-            'package-manager-prepatchAll' => [
-                'type' => 'Segment',
-                'options' => [
-                    'route' => '/env/:envId/servers/pre-patch/:patch',
-                    'constraints' => [
-                        'envId' => '[0-9]+',
-                        'patch' => '[0-9a-zA-Z\-]+',
-                    ],
-                    'defaults' => [
-                        '__NAMESPACE__' => 'KmbPackageManager\Controller',
-                        'controller' => 'Package',
-                        'action' => 'prePatchAllHost',
-                    ],
-                ],
-            ],
-            'package-manager-patch' => [
-                'type' => 'Segment',
-                'options' => [
-                    'route' => '/env/:envId/servers/:server/patch',
-                    'constraints' => [
-                        'envId' => '[0-9]+',
-                        'server' => '[0-9a-zA-Z\.\-]+',
-                    ],
-                    'defaults' => [
-                        '__NAMESPACE__' => 'KmbPackageManager\Controller',
-                        'controller' => 'Package',
-                        'action' => 'patchHost',
-                    ],
-                ],
-            ],
-            'package-manager-patch-all' => [
-                'type' => 'Segment',
-                'options' => [
-                    'route' => '/env/:envId/servers/patch/:patch',
-                    'constraints' => [
-                        'envId' => '[0-9]+',
-                        'patch' => '[0-9a-zA-Z\-]+',
-                    ],
-                    'defaults' => [
-                        '__NAMESPACE__' => 'KmbPackageManager\Controller',
-                        'controller' => 'Package',
-                        'action' => 'patchAllHost',
-                    ],
-                ],
-            ],
             'package-manager-patch-detail' => [
                 'type' => 'Segment',
                 'options' => [
@@ -122,6 +62,7 @@ return [
                         '__NAMESPACE__' => 'KmbPackageManager\Controller',
                         'controller' => 'Patch',
                         'action' => 'show',
+                        'envId' => 0,
                     ],
                 ],
             ],

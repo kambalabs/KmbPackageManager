@@ -91,7 +91,9 @@ class AvailableFixCollector implements CollectorInterface
     public function getPatchInContext($id,$environment) {
         $environments = $this->permissionEnvironmentService->getAllReadable(isset($environment) ? $environment : null);
         $queryEnvironment = null;
-        $queryEnvironment = $this->nodesEnvironmentsQueryBuilder->build($environments)->getData();
+        if(!empty($environments)) {
+            $queryEnvironment = $this->nodesEnvironmentsQueryBuilder->build($environments)->getData();
+        }
         $nodesCollection = $this->getNodeService()->getAll($queryEnvironment);
         $environment_hosts = [];
         foreach($nodesCollection as $node) {
