@@ -1,3 +1,45 @@
+function getResult(data,id,discovered_nodes,refreshResult) {
+    $ .ajax({
+        type: 'GET',
+	url:  '/mcollective/results/' + data['actionid'] + '/requestid/' + id,
+	dataType: 'json',
+	success: function(data,status) {
+            resultsReceived = Object.keys(data).length;
+	    console.log("Success in resultUrl : " + resultsReceived);
+
+            if (resultsReceived == discovered_nodes) {
+                console.log('Stopping polling... Received : ' + resultsReceived + ' - Discovered : ' + discovered_nodes);
+                clearInterval(refreshResult);
+                NProgress.done();
+		$(":input").attr("disabled", false);
+		$("a").attr("disabled", false);
+
+                console.log(data);
+
+                $.each(data, function(index, obj) {
+                    if(obj['statuscode'] == 0) {
+		        $.gritter.add({
+			    title: 'Patch',
+			    text: 'Patch applied successfully',
+			    class_name: 'gritter-success',
+		        });
+		        location.reload(true);
+                    }
+                    else
+                    {
+                        $.gritter.add({
+			    title: 'Patch',
+			    text: 'Patch NOT applied.',
+			    class_name: 'gritter-danger',
+		        });
+                    }
+                });
+            }
+        }
+    });
+
+}
+
 $(document).ready(function() {
     $("#affectedhostlist").dataTable({});
     $(document).on('click','.patch-btn',function(data){
@@ -43,34 +85,47 @@ $(document).ready(function() {
 	    url: $form.attr('action'),
 	    data: $form.serialize(),
 	    success: function(data, status) {
-		if(data['status'] == "success") {
-		    $.gritter.add({
-			title: 'Patch',
-			text: 'Patch applied successfully',
-			class_name: 'gritter-success',
-		    });
-		    location.reload(true);
-		}else if(data['status'] == "partial") {
-		    var $error_list = "<ul>";
-		    $.each(data['errors'], function (agent,result) {
-			$error_list += "<li>"+ agent +" : "+ result +"</li>";
-		    });
-		    $.gritter.add({
-			title: 'Patch',
-			text: 'Patch applied with errors.<br>'+$error_list,
-			class_name: 'gritter-warning',
-		    });
-		}else {
-		    var $error_list = "<ul>";
-		    $.each(data['errors'], function (agent,result) {
-			$error_list += "<li>"+ agent +" : "+ result +"</li>";
-		    });
-		    $.gritter.add({
-			title: 'Patch',
-			text: 'Patch NOT applied. <br/>'+ $error_list,
-			class_name: 'gritter-danger',
-		    });
-		}
+                $.each(data['requestid'], function(id, content) {
+                    discovered_nodes = content['hosts'].length;
+                    // 'route' => '/mcollective/results/:actionid[/requestid/:requestid]',
+
+                    var refreshResult = setInterval(function() {
+                                            getResult(data,id,discovered_nodes,refreshResult);
+                                        }, 10000);
+
+                    getResult(data,id,discovered_nodes,refreshResult);
+                });
+		// if(data['status'] == "success") {
+		//     $.gritter.add({
+		// 	title: 'Patch',
+		// 	text: 'Patch applied successfully',
+		// 	class_name: 'gritter-success',
+		//     });
+
+                //     console.log(data);
+
+		//     location.reload(true);
+		// }else if(data['status'] == "partial") {
+		//     var $error_list = "<ul>";
+		//     $.each(data['errors'], function (agent,result) {
+		// 	$error_list += "<li>"+ agent +" : "+ result +"</li>";
+		//     });
+		//     $.gritter.add({
+		// 	title: 'Patch',
+		// 	text: 'Patch applied with errors.<br>'+$error_list,
+		// 	class_name: 'gritter-warning',
+		//     });
+		// }else {
+		//     var $error_list = "<ul>";
+		//     $.each(data['errors'], function (agent,result) {
+		// 	$error_list += "<li>"+ agent +" : "+ result +"</li>";
+		//     });
+		//     $.gritter.add({
+		// 	title: 'Patch',
+		// 	text: 'Patch NOT applied. <br/>'+ $error_list,
+		// 	class_name: 'gritter-danger',
+		//     });
+		// }
 	    },
 	    error: function(data, status) {
 		$.gritter.add({
@@ -80,9 +135,9 @@ $(document).ready(function() {
 		});
 	    },
 	    complete: function(data) {
-		NProgress.done();
-		$(":input").attr("disabled", false);
-		$("a").attr("disabled", false);
+		// NProgress.done();
+		// $(":input").attr("disabled", false);
+		// $("a").attr("disabled", false);
 	    }
 	});
 

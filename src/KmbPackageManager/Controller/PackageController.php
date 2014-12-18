@@ -169,7 +169,7 @@ class PackageController extends AbstractActionController implements Authenticate
             $logs = [];
             $action = $mcProxyPatchService->patch($hostlist,$pkg_arg, $environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
             $this->insertSecurityLog($common_pkg,$hostlist,$actionid,$action->result[0],$this->identity());
-            $requestids[] = $action->result[0];
+            $requestids[$action->result[0]] = ['packages' => $common_pkg, 'hosts' => $hostlist];
         } while(! empty($diff));
 
         return new JsonModel(['actionid' => $actionid, 'requestid' => $requestids]);
