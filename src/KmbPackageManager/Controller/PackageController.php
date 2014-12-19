@@ -27,6 +27,7 @@ use Zend\View\Model\ViewModel;
 use KmbAuthentication\Controller\AuthenticatedControllerInterface;
 use KmbMcProxy\Service\Patch;
 use KmbPackageManager\Model\SecurityLogs;
+use KmbMcollective\Model\McollectiveLog;
 
 class PackageController extends AbstractActionController implements AuthenticatedControllerInterface
 {
@@ -171,6 +172,14 @@ class PackageController extends AbstractActionController implements Authenticate
             $this->insertSecurityLog($common_pkg,$hostlist,$actionid,$action->result[0],$this->identity());
             $requestids[$action->result[0]] = ['packages' => $common_pkg, 'hosts' => $hostlist];
         } while(! empty($diff));
+
+        $mcoLog = new McollectiveLog($actionid, $this->identity()->getLogin(),$this->identity()->getName() , 'patch', is_string($hostlist) ? $hostlist : '('.implode('|',$hostlist).')', is_string($hostlist) ? [$hostlist] : $hostlist, $environment->getNormalizedName(),json_encode($pkg_arg));
+        try {
+            $this->getServiceLocator()->get('McollectiveLogRepository')->add($mcoLog);
+        } catch (\Exception $e) {
+            $this->debug($e->getMessage());
+            $this->debug($e->getTraceAsString());
+        }
 
         return new JsonModel(['actionid' => $actionid, 'requestid' => $requestids]);
     }
