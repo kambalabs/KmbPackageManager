@@ -134,8 +134,6 @@ class PackageController extends AbstractActionController implements Authenticate
         if(! isset($host)) {
             $host = $patch->getAffectedHostsInContext();
         }
-        $common_pkg= [];
-        $diff = [];
         $donepkg = [];
         $requestids=[];
         do {
@@ -149,29 +147,34 @@ class PackageController extends AbstractActionController implements Authenticate
              * * donepkg keep tracks of already installed patches
              *
              **/
-            $common_pkg = $diff;
             $hostlist = [];
+            $common_pkg= [];
             foreach($packages as $hostname => $pkgs)
             {
-                $process = $this->getSmallestGroup($common_pkg,$pkgs,$donepkg);
-                if(!empty($process['group'])) {
+                $group = $this->getSmallestGroup($common_pkg,$pkgs,$donepkg);
+                if(!empty($group)) {
                     $hostlist[] = $hostname;
+                    $common_pkg = $group;
                 }
-                $common_pkg = $process['group'];
-                $diff=$process['diff'];
             }
             $donepkg = array_merge($donepkg,$common_pkg);
+            if (! empty($common_pkg)) {
+                $pkg_arg = [];
+                foreach($common_pkg as $name => $detail) {
+                    $version = $detail['version'];
+                    if(strpos($version, '-')){
+                        $version = explode('-',$detail['version']);
+                        $pkg_arg[] = [ 'name' => $name, 'version' => $version[0], 'release' => $version[1] ];
+                    }else{
+                        $pkg_arg[] = [ 'name' => $name, 'version' => $version[0], 'release' => null ];
+                    }
 
-            $pkg_arg = [];
-            foreach($common_pkg as $name => $detail) {
-                $version = explode('-',$detail['version']);
-                $pkg_arg[] = [ 'name' => $name, 'version' => $version[0], 'release' => $version[1] ];
+                }
+                $action = $mcProxyPatchService->patch($hostlist,$pkg_arg, $environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
+                $this->insertSecurityLog($common_pkg,$hostlist,$actionid,$action->result[0],$this->identity());
+                $requestids[$action->result[0]] = ['packages' => $common_pkg, 'hosts' => $hostlist];
             }
-            $logs = [];
-            $action = $mcProxyPatchService->patch($hostlist,$pkg_arg, $environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
-            $this->insertSecurityLog($common_pkg,$hostlist,$actionid,$action->result[0],$this->identity());
-            $requestids[$action->result[0]] = ['packages' => $common_pkg, 'hosts' => $hostlist];
-        } while(! empty($diff));
+        } while(! empty($common_pkg));
 
         $mcoLog = new McollectiveLog($actionid, $this->identity()->getLogin(),$this->identity()->getName() , 'patch', is_string($hostlist) ? $hostlist : '('.implode('|',$hostlist).')', is_string($hostlist) ? [$hostlist] : $hostlist, $environment->getNormalizedName(),json_encode($pkg_arg));
         try {
@@ -199,17 +202,16 @@ class PackageController extends AbstractActionController implements Authenticate
     }
 
     public function getSmallestGroup($reference,$array,$strip = []) {
+        $reference =array_diff_key($reference,$strip);
         ksort($reference);
         ksort($array);
         ksort($strip);
         if(empty($reference)) {
-            $reference = $array;
-            $diff = [];
+            $reference = array_diff_key($array,$strip);
         }else{
-            $diff = array_diff_assoc($array,$reference);
-            $reference = array_intersect_assoc($reference,$array);
+            $reference = array_intersect_key($reference,$array);
         }
-        return [ 'group' => array_diff_assoc($reference,$strip), 'diff' => $diff ];
+        return $reference;
     }
 
     public function globalActionStatus($result) {
@@ -217,7 +219,6 @@ class PackageController extends AbstractActionController implements Authenticate
         $errors = [];
         foreach($result as $actionResult)
         {
-            $this->debug(print_r($actionResult,true));
             if($actionResult->getStatusCode() == 0 && $status == "") {
                 $status = "success";
             }elseif($actionResult->getStatusCode() == 0 && $status == "error") {
@@ -231,10 +232,6 @@ class PackageController extends AbstractActionController implements Authenticate
                 $errors[$actionResult->getAgent()."::".$actionResult->getAction()][] = $actionResult->getResult();
             }
         }
-        $this->debug('This is the result of globalActionStatus : ');
-        $this->debug(print_r($status,true));
-        $this->debug(print_r($errors,true));
-        $this->debug(print_r($result,true));
         return ['status' => $status, 'errors' => $errors];
     }
     /**
