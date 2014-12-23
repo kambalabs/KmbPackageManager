@@ -162,13 +162,13 @@ class PackageController extends AbstractActionController implements Authenticate
                 $pkg_arg = [];
                 foreach($common_pkg as $name => $detail) {
                     $version = $detail['version'];
-                    if(strpos($version, '-')){
-                        $version = explode('-',$detail['version']);
-                        $pkg_arg[] = [ 'name' => $name, 'version' => $version[0], 'release' => $version[1] ];
-                    }else{
-                        $pkg_arg[] = [ 'name' => $name, 'version' => $version[0], 'release' => null ];
-                    }
-
+                    $pkg_arg[] = [ 'name' => $name, 'version' => $version ];
+                    // if(strpos($version, '-')){
+                    //     $version = explode('-',$detail['version']);
+                    //     $pkg_arg[] = [ 'name' => $name, 'version' => $version[0], 'release' => $version[1] ];
+                    // }else{
+                    //     $pkg_arg[] = [ 'name' => $name, 'version' => $version[0], 'release' => null ];
+                    // }
                 }
                 $action = $mcProxyPatchService->patch($hostlist,$pkg_arg, $environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
                 $this->insertSecurityLog($common_pkg,$hostlist,$actionid,$action->result[0],$this->identity());

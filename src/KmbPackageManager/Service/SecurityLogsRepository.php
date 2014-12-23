@@ -65,7 +65,7 @@ class SecurityLogsRepository extends Repository implements SecurityLogsRepositor
             ->and
             ->equalTo('status','pending');
         $result = $this->hydrateAggregateRootsFromResult($this->performRead($select));
-        return count($result) > 0 ? $result[0] : null;
+        return count($result) > 0 ? $result : null;
     }
 
     public function getAll() {
