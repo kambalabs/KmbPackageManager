@@ -41,9 +41,10 @@ class PatchController extends AbstractActionController implements AuthenticatedC
 
     public function showAction(){
         $environment = $this->getServiceLocator()->get('EnvironmentRepository')->getById($this->params()->fromRoute('envId'));
-        // $patch = $this->getServiceLocator()->get('PatchRepository')->getByPublicId($this->params()->fromRoute('patch'));
-        // $patch->setServiceLocator($this->getServiceLocator());
         $patch = $this->getServiceLocator()->get('KmbPackageManager\Service\AvailableFix')->getPatchInContext($this->params()->fromRoute('patch'),$environment)->getData()[0];
+        if ($environment == null) {
+            $this->globalMessenger()->addDangerMessage($this->translate('<h4>Warning !</h4><p>You have to select an environment first !</p>'));
+        }
         return new ViewModel(['patch' => $patch, 'environment' => $environment]);
     }
 

@@ -12,11 +12,11 @@
         <div class="stats-title"><a href="<?= $this->url('package-manager', [], [],true) ?>" class="btn btn-info"><i class="glyphicon glyphicon-chevron-left"></i> <?php echo $this->translate('back') ?></a></div>
       </div>
         <div class="pull-left col-md-5" >
-	  <p><?= sprintf($this->translatePlural('Affected package :<br/> <kbd>%s</kbd>', 'Affected package :<br/> <kbd>%s</kbd>', $patch->getPackages()), implode(', ',$patch->getPackages())) ?></p>
+            <!-- <p><?= sprintf($this->translatePlural('Affected package :<br/> <kbd>%s</kbd>', 'Affected package :<br/> <kbd>%s</kbd>', $patch->getPackages()), implode(', ',$patch->getPackages())) ?></p> -->
 	</div>
         <div class="col-md-5 pull-right">
 	  <div>&nbsp;</div>
-	  <a id="patchAllBtn" class="btn btn-danger" type="button" data-url="<?= $this->url('package-manager-generic-prepatch',['patch' => $patch->getPublicId()],[],true) ?>"><?= $this->translate('Patch all hosts') ?></a>
+	  <a id="patchAllBtn" class="btn btn-danger" type="button" data-url="<?= $this->url('package-manager-generic-prepatch',['patch' => $patch->getPublicId()],[],true) ?>"  <?= isset($environment) ? "" : "disabled"?>><?= $this->translate('Patch all hosts') ?></a>
 	  <a target="_blank" type="button" class="btn btn-info" href="http://cve.mitre.org/cgi-bin/cvename.cgi?name=<?= $patch->getPublicId() ?>" ><?= $this->translate('Open CVE detail page ') ?></a>
 	</div>
     </div>
@@ -33,7 +33,7 @@
 		  </thead>
 		  <tbody>
               <?php foreach($patch->getAffectedHostsInContext() as $index => $host): ?>
-		      <tr><td><?= $host ?></td><td><button class="btn btn-danger patch-btn" data-cve="<?= $patch->getPublicId() ?>" data-url="<?= $this->url('package-manager-generic-prepatch',['server' => $host],[],true) ?>" data-package="<?= implode(',',$patch->getPackages()) ?>"><?= $this->translate('Patch')?></button></td></tr>
+		      <tr><td><?= $host ?></td><td><button class="btn btn-danger patch-btn" data-cve="<?= $patch->getPublicId() ?>" data-url="<?= $this->url('package-manager-generic-prepatch',['server' => $host],[],true) ?>" data-package="<?= implode(',',$patch->getPackages()) ?>"  <?= isset($environment) ? "" : "disabled"?>><?= $this->translate('Patch')?></button></td></tr>
 		    <?php endforeach ?>
 		  </tbody>
 		</table>
