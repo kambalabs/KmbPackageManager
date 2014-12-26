@@ -49,7 +49,6 @@ class SecurityLogsRepository extends Repository implements SecurityLogsRepositor
         } else {
             $select->order("updated_at DESC");
         }
-        //        error_log(print_r($select->getSqlString(),true));
         $result = $this->hydrateAggregateRootsFromResult($this->performRead($select));
         return $result;
     }

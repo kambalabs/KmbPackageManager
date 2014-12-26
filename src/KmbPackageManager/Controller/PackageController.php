@@ -107,8 +107,6 @@ class PackageController extends AbstractActionController implements Authenticate
         $checkResult = $this->globalActionStatus($result);
         $divalert = ($checkResult['status'] === 'success') ? 'success' : 'danger';
 
-        $this->debug(print_r($packageAction,true));
-
         $html = new ViewModel(['packages' => $packageAction, 'host' => $host, 'actionid' => $action[0]->actionid, 'result' => $checkResult, 'divalert' => $divalert, 'agent' => $result[0]->getAgent(), 'action' => $result[0]->getAction(), 'patch' => $patch ]);
         if($this->params()->fromRoute('server') != null) {
             $html->setTemplate('kmb-package-manager/package/pre-patch-host.phtml');
@@ -163,12 +161,6 @@ class PackageController extends AbstractActionController implements Authenticate
                 foreach($common_pkg as $name => $detail) {
                     $version = $detail['version'];
                     $pkg_arg[] = [ 'name' => $name, 'version' => $version ];
-                    // if(strpos($version, '-')){
-                    //     $version = explode('-',$detail['version']);
-                    //     $pkg_arg[] = [ 'name' => $name, 'version' => $version[0], 'release' => $version[1] ];
-                    // }else{
-                    //     $pkg_arg[] = [ 'name' => $name, 'version' => $version[0], 'release' => null ];
-                    // }
                 }
                 $action = $mcProxyPatchService->patch($hostlist,$pkg_arg, $environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
                 $this->insertSecurityLog($common_pkg,$hostlist,$actionid,$action->result[0],$this->identity());

@@ -85,7 +85,7 @@ class AvailableFixCollector implements CollectorInterface
         foreach($patchList as $index => $patch) {
             $processedPatchList[] = $patch->setAffectedHostsInContext(array_intersect($patch->getAffectedHosts(),$environment_hosts));
         }
-        return Collection::factory($processedPatchList, $limit, $this->patchRepository->countAllByHostList($environment_hosts));
+        return Collection::factory($processedPatchList, $limit, $this->patchRepository->countAllByHostList($environment_hosts,$dtquery));
     }
 
     public function getPatchInContext($id,$environment) {

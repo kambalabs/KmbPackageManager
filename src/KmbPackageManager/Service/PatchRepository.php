@@ -27,6 +27,7 @@ use Zend\Db\Sql\Predicate\Predicate;
 use Zend\Db\Adapter\Driver\ResultInterface;
 use Zend\Db\Sql\Select;
 use Zend\Db\Sql\Where;
+use Zend\Db\ResultSet\ResultSet;
 use Zend\Db\Sql\Expression;
 
 
@@ -68,21 +69,58 @@ class PatchRepository extends Repository implements PatchRepositoryInterface
             'hostname' => $hostlist,
         ]);
 
+        $hostids = [];
+        foreach($this->performRead($selectHost) as $index => $value) {
+            $hostids[] = $value['id'];
+        }
+
         $selectJoin = $this->getSlaveSql()->select()->columns(['vulnerability_id'])->from($this->joinTableName);
         $selectJoin->where([
-            'host_id' => [$selectHost]
+            'host_id' => $hostids
         ]);
+        $vulnids = [];
+        foreach($this->performRead($selectJoin) as $index => $value) {
+            $vulnids[] = $value['vulnerability_id'];
+        }
 
         $selectPatch = $this->getSlaveSql()->select()->columns(['id'])->from($this->tableName);
         $selectPatch->where([
-            'id' => [$selectJoin],
+            'id' => $vulnids,
         ]);
 
+        if(isset($query)) {
+            $selectPatch->where
+                ->like('publicid', '%'. $query .'%')
+                ->or
+                ->like('package', '%'.$query.'%'
+                );
+;
+        }
+
+        if($orderBy != null) {
+            $sort = explode(' ',$orderBy);
+            if($sort[0] == "criticity") {
+                $selectPatch->order(new \Zend\Db\Sql\Expression("CASE
+                                                  WHEN criticity = 'low' THEN 2
+                                                  WHEN criticity = 'medium' THEN 1
+                                                  WHEN criticity = 'high' THEN 0
+                                                  END ". $sort[1]));
+            } else {
+                $selectPatch->order($orderBy);
+            }
+        }else{
+            $selectPatch->order("publicid DESC");
+        }
         if(isset($limit)) {
             $selectPatch->limit($limit);
         }
         if(isset($offset)) {
             $selectPatch->offset($offset);
+        }
+
+        $vulnerabilities = [];
+        foreach($this->performRead($selectPatch) as $index => $value) {
+            $vulnerabilities[] = $value['id'];
         }
 
         $select = $this
@@ -105,15 +143,9 @@ class PatchRepository extends Repository implements PatchRepositoryInterface
                 Select::JOIN_LEFT
             );
         $select->where([
-            'vuln.id' => [$selectPatch]
+            'vuln.id' => $vulnerabilities
         ]);
 
-        if($query) {
-            $select->where
-                ->like('publicid', '%'. $query .'%')
-                ->or
-                ->like('package', '%'.$query.'%');
-        }
         if($orderBy != null) {
             $sort = explode(' ',$orderBy);
             if($sort[0] == "criticity") {
@@ -126,24 +158,75 @@ class PatchRepository extends Repository implements PatchRepositoryInterface
                 $select->order($orderBy);
             }
         } else {
-            $selectPatch->order("publicid DESC");
             $select->order("publicid DESC");
         }
-
         $result = $this->hydrateAggregateRootsFromResult($this->performRead($select));
         return $result;
     }
 
-    public function countAllByHostList($hostlist)
+    public function countAllByHostList($hostlist,$query=null)
     {
-        $selectPatch=$this->getSlaveSql()->select()->from($this->tableName);
-        $select = $this->getJoinSelect($selectPatch);
-
-
-        $select->where([
-            'hosts.hostname' => $hostlist
+        $selectHost = $this->getSlaveSql()->select()->columns(['id'])->from($this->hostTableName);
+        $selectHost->where([
+            'hostname' => $hostlist,
         ]);
-        return count($this->performRead($select));
+
+        $hostids = [];
+        foreach($this->performRead($selectHost) as $index => $value) {
+            $hostids[] = $value['id'];
+        }
+
+        $selectJoin = $this->getSlaveSql()->select()->columns(['vulnerability_id'])->from($this->joinTableName);
+        $selectJoin->where([
+            'host_id' => $hostids
+        ]);
+        $vulnids = [];
+        foreach($this->performRead($selectJoin) as $index => $value) {
+            $vulnids[] = $value['vulnerability_id'];
+        }
+
+        $selectPatch = $this->getSlaveSql()->select()->columns(['id'])->from($this->tableName);
+        $selectPatch->where([
+            'id' => $vulnids,
+        ]);
+
+        if(isset($query)) {
+            $selectPatch->where
+                ->like('publicid', '%'. $query .'%')
+                ->or
+                ->like('package', '%'.$query.'%'
+                );
+;
+        }
+        $vulnerabilities = [];
+        foreach($this->performRead($selectPatch) as $index => $value) {
+            $vulnerabilities[] = $value['id'];
+        }
+
+        $select = $this
+            ->getSlaveSql()
+            ->select()
+            ->from($this->joinTableName)
+            ->join(
+                ['vuln' => $this->tableName],
+                'vuln.id = '.$this->joinTableName.'.vulnerability_id',
+                ['*' => '*'],
+                Select::JOIN_RIGHT
+            )
+            ->join(
+                ['hosts' => $this->getHostTableName()],
+                'hosts.id = '. $this->joinTableName .'.host_id',
+                [
+                    'hosts.id' => 'id',
+                    'hosts.hostname' => 'hostname'
+                ],
+                Select::JOIN_LEFT
+            );
+        $select->where([
+            'vuln.id' => $vulnerabilities
+        ]);
+
+        return count($this->hydrateAggregateRootsFromResult($this->performRead($select)));
     }
 
 

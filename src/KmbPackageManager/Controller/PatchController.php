@@ -70,15 +70,6 @@ class PatchController extends AbstractActionController implements AuthenticatedC
         }
 
         return $viewModel->setVariables($variables);
-
-        // $repository = $this->getServiceLocator()->get('SecurityLogsRepository');
-        // $history = $repository->getAll();
-
-        // $coin = new SecurityLogs('2014-12-11 16:55:40.790996','Manux','coin','1','2','manux01');
-        // $repository->add($coin);
-        // $history2 = $repository->getAll();
-
-        // return new JsonModel(['patch1' => $history, 'patch2' => $history2]);
     }
 
     /**
