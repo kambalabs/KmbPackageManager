@@ -37,6 +37,8 @@ function getResult(data,id,discovered_nodes,refreshResult) {
 			text: 'Patch applied successfully',
 			class_name: 'gritter-success',
 		    });
+                    // Let some time to user to see patch result (and avoid refresh too soon)
+                    sleep(5000);
 		    location.reload(true);
                 } else if(globalStatus == 1) {
                     $.gritter.add({
@@ -57,6 +59,18 @@ function getResult(data,id,discovered_nodes,refreshResult) {
     });
 
 }
+
+
+
+function sleep(milliseconds) {
+    var start = new Date().getTime();
+    for (var i = 0; i < 1e7; i++) {
+        if ((new Date().getTime() - start) > milliseconds){
+            break;
+        }
+    }
+}
+
 
 $(document).ready(function() {
     $("#affectedhostlist").dataTable({});
