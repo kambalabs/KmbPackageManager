@@ -83,6 +83,10 @@ return [
             ]
         ],
     ],
+    // 'mcreply' => [
+    //     'patch' => 'KmbPackageManager\Handler\PatchHandler',
+    //     // 'patch' => 'KmbPackageManager\Handler\PatchReplyHandlerFactory',
+    // ],
     'navigation' => [
         'navbar' => [
             'servers' => [
@@ -236,6 +240,7 @@ return [
     'service_manager' => [
         'factories' => [
             'KmbPackageManager\Service\AvailableFix' => 'KmbPackageManager\Service\AvailableFixCollectorFactory',
+            'PatchReplyHandlerFactory' => 'KmbPackageManager\Handler\PatchReplyHandlerFactory'
         ],
     ],
 ];
