@@ -1,0 +1,220 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Kamba\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-01-26 10:20+0100\n"
+"PO-Revision-Date: 2015-01-26 10:20+0100\n"
+"Last-Translator: slaws\n"
+"Language-Team: Kamba Contibutors <devteam@kamba.org>\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-KeywordsList: translate;translatePlural:1,2\n"
+"X-Poedit-Basepath: .\n"
+"Plural-Forms: nplurals=2; plural=n == 1 ? 0 : 1;\n"
+"X-Generator: Poedit 1.7.3\n"
+"X-Poedit-SearchPath-0: ..\n"
+
+#: ../config/module.config.php:93
+msgid "Servers"
+msgstr "Servers"
+
+#: ../config/module.config.php:98
+msgid "Inventory"
+msgstr "Inventory"
+
+#: ../config/module.config.php:105
+msgid "Security"
+msgstr "Security"
+
+#: ../config/module.config.php:112
+msgid "Security Logs"
+msgstr "Security Logs"
+
+#: ../src/KmbPackageManager/Controller/PatchController.php:46
+msgid "<h4>Warning !</h4><p>You have to select an environment first !</p>"
+msgstr "<h4>Warning !</h4><p>You have to select an environment first !</p>"
+
+#: ../src/KmbPackageManager/View/Decorator/CriticityDecorator.php:32
+msgid "Criticity"
+msgstr "Criticity"
+
+#: ../src/KmbPackageManager/View/Decorator/CriticityDecorator.php:43
+msgid "high"
+msgstr "high"
+
+#: ../src/KmbPackageManager/View/Decorator/CriticityDecorator.php:46
+msgid "medium"
+msgstr "medium"
+
+#: ../src/KmbPackageManager/View/Decorator/CriticityDecorator.php:49
+msgid "low"
+msgstr "low"
+
+#: ../src/KmbPackageManager/View/Decorator/CriticityDecorator.php:52
+#, php-format
+msgid "unknown : %s"
+msgstr "unknown : %s"
+
+#: ../src/KmbPackageManager/View/Decorator/NbServersDecorator.php:32
+msgid "Impacted servers"
+msgstr "Impacted servers"
+
+#: ../src/KmbPackageManager/View/Decorator/NbServersDecorator.php:41
+msgid "servers"
+msgstr "servers"
+
+#: ../src/KmbPackageManager/View/Decorator/PackagesDecorator.php:32
+msgid "Impacted packages"
+msgstr "Impacted packages"
+
+#: ../src/KmbPackageManager/View/Decorator/PackagesDecorator.php:50
+#, php-format
+msgid "and %s more"
+msgid_plural "and %s more"
+msgstr[0] "and %s more"
+msgstr[1] "and %s more"
+
+#: ../src/KmbPackageManager/View/Decorator/PatchNameDecorator.php:32
+msgid "Public ID"
+msgstr "Public ID"
+
+#: ../src/KmbPackageManager/View/Decorator/PatchNameDecorator.php:41
+msgid "Click to view details"
+msgstr "Click to view details"
+
+#: ../src/KmbPackageManager/View/Decorator/SecurityLogsDateDecorator.php:32
+msgid "Date"
+msgstr "Date"
+
+#: ../src/KmbPackageManager/View/Decorator/SecurityLogsFromVersionDecorator.php:32
+msgid "FromVersion"
+msgstr "FromVersion"
+
+#: ../src/KmbPackageManager/View/Decorator/SecurityLogsPackageDecorator.php:32
+#: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:33
+#: ../view/kmb-package-manager/package/pre-patch-host.phtml:19
+msgid "Package"
+msgstr "Package"
+
+#: ../src/KmbPackageManager/View/Decorator/SecurityLogsServerDecorator.php:32
+msgid "Server"
+msgstr "Server"
+
+#: ../src/KmbPackageManager/View/Decorator/SecurityLogsStatusDecorator.php:32
+msgid "Status"
+msgstr "Status"
+
+#: ../src/KmbPackageManager/View/Decorator/SecurityLogsToVersionDecorator.php:32
+msgid "ToVersion"
+msgstr "To version"
+
+#: ../src/KmbPackageManager/View/Decorator/SecurityLogsUserDecorator.php:32
+msgid "User"
+msgstr "User"
+
+#: ../view/kmb-package-manager/package/available-upgrade.phtml:5
+msgid "List of available security fixes"
+msgstr "List of available security fixes"
+
+#: ../view/kmb-package-manager/package/available-upgrade.phtml:12
+msgid "Help"
+msgstr "Help"
+
+#: ../view/kmb-package-manager/package/available-upgrade.phtml:14
+msgid ""
+"You can click on the number of servers to have more details and patch all or "
+"part of these servers."
+msgstr ""
+"You can click on the number of servers to have more details and patch all or "
+"part of these servers."
+
+#: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:3
+#: ../view/kmb-package-manager/package/pre-patch-host.phtml:3
+msgid "Package Installation"
+msgstr "Package Installation"
+
+#: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:9
+#: ../view/kmb-package-manager/package/pre-patch-host.phtml:9
+msgid "The following packages will be upgraded"
+msgstr "The following packages will be upgraded"
+
+#: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:11
+#: ../view/kmb-package-manager/package/pre-patch-host.phtml:11
+msgid "Error with pre-patch on this server :"
+msgstr "Error with pre-patch on this server :"
+
+#: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:24
+#, php-format
+msgid "%d package"
+msgid_plural "%d packages"
+msgstr[0] "%d package"
+msgstr[1] "%d packages"
+
+#: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:34
+#: ../view/kmb-package-manager/package/pre-patch-host.phtml:20
+msgid "From Version"
+msgstr "From Version"
+
+#: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:35
+#: ../view/kmb-package-manager/package/pre-patch-host.phtml:21
+msgid "To Version"
+msgstr "To Version"
+
+#: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:36
+#: ../view/kmb-package-manager/package/pre-patch-host.phtml:22
+msgid "Repository"
+msgstr "Repository"
+
+#: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:52
+#: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:57
+#: ../view/kmb-package-manager/package/pre-patch-host.phtml:32
+#: ../view/kmb-package-manager/package/pre-patch-host.phtml:37
+msgid "Cancel"
+msgstr "Cancel"
+
+#: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:53
+#: ../view/kmb-package-manager/package/pre-patch-host.phtml:33
+msgid "Install Package"
+msgstr "Install Package"
+
+#: ../view/kmb-package-manager/patch/show.phtml:6
+#, php-format
+msgid "Details on patch %s"
+msgstr "Details on patch %s"
+
+#: ../view/kmb-package-manager/patch/show.phtml:12
+msgid "back"
+msgstr "back"
+
+#: ../view/kmb-package-manager/patch/show.phtml:15
+#, php-format
+msgid "Affected package :<br/> <kbd>%s</kbd>"
+msgid_plural "Affected package :<br/> <kbd>%s</kbd>"
+msgstr[0] "Affected package :<br/> <kbd>%s</kbd>"
+msgstr[1] "Affected packages :<br/> <kbd>%s</kbd>"
+
+#: ../view/kmb-package-manager/patch/show.phtml:19
+msgid "Patch all hosts"
+msgstr "Patch all hosts"
+
+#: ../view/kmb-package-manager/patch/show.phtml:20
+msgid "Open CVE detail page "
+msgstr "Open CVE detail page "
+
+#: ../view/kmb-package-manager/patch/show.phtml:27
+msgid "Affected Hosts"
+msgstr "Affected Hosts"
+
+#: ../view/kmb-package-manager/patch/show.phtml:31
+msgid "Hostname"
+msgstr "Hostname"
+
+#: ../view/kmb-package-manager/patch/show.phtml:32
+msgid "Action"
+msgstr "Action"
+
+#: ../view/kmb-package-manager/patch/show.phtml:36
+msgid "Patch"
+msgstr "Patch"
