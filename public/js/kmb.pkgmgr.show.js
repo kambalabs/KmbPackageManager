@@ -1,60 +1,118 @@
 function getResult(data,id,discovered_nodes,refreshResult) {
     $ .ajax({
         type: 'GET',
-	url:  '/mcollective/results/' + data['actionid'] + '/requestid/' + id,
+//	url:  '/mcollective/results/' + data['actionid'] + '/requestid/' + id,
+        url:  '/mcollective/results/' + data['actionid'],
 	dataType: 'json',
 	success: function(data,status) {
             resultsReceived = Object.keys(data).length;
 	    console.log("Success in resultUrl : " + resultsReceived);
 
-            if (resultsReceived == discovered_nodes) {
+            // 0 => all ok
+            // 1 => partial failure
+            // 2 => failure
+
+            var globalStatus = 0;
+            var errorCount = 0;
+
+            var finished = true;
+            $.each(data, function(index, obj) {
+                if(! obj['finished']) {
+                    finished=false;
+                }
+                if(obj['statuscode'] != 0) {
+                    globalStatus = 1;
+                    errorCount += 1;
+                }
+
+                if (errorCount == resultsReceived) {
+                    globalStatus = 2;
+                }
+            });
+
+            if(finished && (resultsReceived >= ( 3 * discovered_nodes))) {
                 console.log('Stopping polling... Received : ' + resultsReceived + ' - Discovered : ' + discovered_nodes);
                 clearInterval(refreshResult);
                 NProgress.done();
-		$(":input").attr("disabled", false);
-		$("a").attr("disabled", false);
+	        $(":input").attr("disabled", false);
+	        $("a").attr("disabled", false);
 
-                // 0 => all ok
-                // 1 => partial failure
-                // 2 => failure
-
-                var globalStatus = 0;
-                var errorCount = 0;
-                $.each(data, function(index, obj) {
-                    if(obj['statuscode'] != 0) {
-                        globalStatus = 1;
-                        errorCount += 1;
-                    }
-
-                    if (errorCount == discovered_nodes) {
-                        globalStatus = 2;
-                    }
-                });
 
                 if (globalStatus == 0) {
                     $.gritter.add({
-			title: 'Patch',
-			text: 'Patch applied successfully',
-			class_name: 'gritter-success',
-		    });
+	                title: 'Patch',
+	                text: 'Patch applied successfully',
+	                class_name: 'gritter-success',
+	            });
                     // Let some time to user to see patch result (and avoid refresh too soon)
                     sleep(5000);
-		    location.reload(true);
+	            location.reload(true);
                 } else if(globalStatus == 1) {
                     $.gritter.add({
-			title: 'Patch',
-			text: 'Patch partially applied.<br/>See logs for details',
-			class_name: 'gritter-warning',
-		    });
+	                title: 'Patch',
+	                text: 'Patch partially applied.<br/>See logs for details',
+	                class_name: 'gritter-warning',
+	            });
                 } else {
                     $.gritter.add({
-			title: 'Patch',
-			text: 'Patch NOT applied.<br/>See logs for details',
-			class_name: 'gritter-danger',
-		    });
+	                title: 'Patch',
+	                text: 'Patch NOT applied.<br/>See logs for details',
+	                class_name: 'gritter-danger',
+	            });
                 }
 
             }
+
+
+
+            // if (resultsReceived == discovered_nodes) {
+            //     console.log('Stopping polling... Received : ' + resultsReceived + ' - Discovered : ' + discovered_nodes);
+            //     clearInterval(refreshResult);
+            //     NProgress.done();
+	    //     $(":input").attr("disabled", false);
+	    //     $("a").attr("disabled", false);
+
+            //     // 0 => all ok
+            //     // 1 => partial failure
+            //     // 2 => failure
+
+            //     var globalStatus = 0;
+            //     var errorCount = 0;
+            //     $.each(data, function(index, obj) {
+            //         if(obj['statuscode'] != 0) {
+            //             globalStatus = 1;
+            //             errorCount += 1;
+            //         }
+
+            //         if (errorCount == discovered_nodes) {
+            //             globalStatus = 2;
+            //         }
+            //     });
+
+            //     if (globalStatus == 0) {
+            //         $.gritter.add({
+	    //     	title: 'Patch',
+	    //     	text: 'Patch applied successfully',
+	    //     	class_name: 'gritter-success',
+	    //         });
+            //         // Let some time to user to see patch result (and avoid refresh too soon)
+            //         sleep(5000);
+	    //         location.reload(true);
+            //     } else if(globalStatus == 1) {
+            //         $.gritter.add({
+	    //     	title: 'Patch',
+	    //     	text: 'Patch partially applied.<br/>See logs for details',
+	    //     	class_name: 'gritter-warning',
+	    //         });
+            //     } else {
+            //         $.gritter.add({
+	    //     	title: 'Patch',
+	    //     	text: 'Patch NOT applied.<br/>See logs for details',
+	    //     	class_name: 'gritter-danger',
+	    //         });
+            //     }
+
+            // }
         }
     });
 

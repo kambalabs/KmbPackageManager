@@ -83,10 +83,19 @@ return [
             ]
         ],
     ],
-    // 'mcreply' => [
-    //     'patch' => 'KmbPackageManager\Handler\PatchHandler',
-    //     // 'patch' => 'KmbPackageManager\Handler\PatchReplyHandlerFactory',
-    // ],
+    'mcollective' => [
+         'translation' => [
+             'patch' => [
+                 'detail' => $translate('Package <strong>#name#</strong> update to version <i>#version#</i>'),
+                 'icon' => 'glyphicon-export',
+             ]
+         ],
+         'handler' => [
+             'PatchReplyHandler' => [
+                 'factory' => 'KmbPackageManager\Handler\PatchReplyHandlerFactory',
+             ]
+         ],
+    ],
     'navigation' => [
         'navbar' => [
             'servers' => [
@@ -240,7 +249,6 @@ return [
     'service_manager' => [
         'factories' => [
             'KmbPackageManager\Service\AvailableFix' => 'KmbPackageManager\Service\AvailableFixCollectorFactory',
-            'PatchReplyHandlerFactory' => 'KmbPackageManager\Handler\PatchReplyHandlerFactory'
         ],
     ],
 ];

@@ -134,6 +134,7 @@ class PackageController extends AbstractActionController implements Authenticate
         }
         $donepkg = [];
         $requestids=[];
+        $affectedHosts = [];
         do {
             /**
              *Some explanations needed ...
@@ -163,12 +164,17 @@ class PackageController extends AbstractActionController implements Authenticate
                     $pkg_arg[] = [ 'name' => $name, 'version' => $version ];
                 }
                 $action = $mcProxyPatchService->patch($hostlist,$pkg_arg, $environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
+                foreach($action->discovered_nodes as $idx => $identity) {
+                    if(! in_array($identity, $affectedHosts)){
+                        array_push($affectedHosts, $identity);
+                    }
+                }
                 $this->insertSecurityLog($common_pkg,$hostlist,$actionid,$action->result[0],$this->identity());
                 $requestids[$action->result[0]] = ['packages' => $common_pkg, 'hosts' => $hostlist];
             }
         } while(! empty($common_pkg));
-
-        $mcoLog = new McollectiveLog($actionid, $this->identity()->getLogin(),$this->identity()->getName() , 'patch', is_string($hostlist) ? $hostlist : '('.implode('|',$hostlist).')', is_string($hostlist) ? [$hostlist] : $hostlist, $environment->getNormalizedName(),json_encode($pkg_arg));
+        $this->debug(print_r($action,true));
+        $mcoLog = new McollectiveLog($actionid, $this->identity()->getLogin(),$this->identity()->getName() , 'patch', is_string($hostlist) ? $hostlist : '('.implode('|',$hostlist).')', $affectedHosts, $environment->getNormalizedName(),json_encode($pkg_arg));
         try {
             $this->getServiceLocator()->get('McollectiveLogRepository')->add($mcoLog);
         } catch (\Exception $e) {

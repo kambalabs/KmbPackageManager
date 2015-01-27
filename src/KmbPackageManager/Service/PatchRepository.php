@@ -78,26 +78,29 @@ class PatchRepository extends Repository implements PatchRepositoryInterface
         $selectJoin->where([
             'host_id' => $hostids
         ]);
+
+
         $vulnids = [];
         foreach($this->performRead($selectJoin) as $index => $value) {
             $vulnids[] = $value['vulnerability_id'];
         }
 
-        $selectPatch = $this->getSlaveSql()->select()->columns(['id'])->from($this->tableName);
-        $selectPatch->where([
-            'id' => $vulnids,
-        ]);
-
-        if(isset($query)) {
-            $selectPatch->where
-                ->like('publicid', '%'. $query .'%')
-                ->or
-                ->like('package', '%'.$query.'%'
-                );
-;
+        if(empty($vulnids)) {
+            return null;
         }
+       $selectPatch = $this->getSlaveSql()->select()->columns(['id'])->from($this->tableName);
+       $selectPatch->where->in('id',$vulnids);
 
-        if($orderBy != null) {
+       if(isset($query)) {
+           $selectPatch->where
+               ->like('publicid', '%'. $query .'%')
+               ->or
+               ->like('package', '%'.$query.'%'
+               );
+           ;
+       }
+
+       if($orderBy != null) {
             $sort = explode(' ',$orderBy);
             if($sort[0] == "criticity") {
                 $selectPatch->order(new \Zend\Db\Sql\Expression("CASE
@@ -117,7 +120,7 @@ class PatchRepository extends Repository implements PatchRepositoryInterface
         if(isset($offset)) {
             $selectPatch->offset($offset);
         }
-
+        error_log("==============================" . $selectPatch->getSqlString());
         $vulnerabilities = [];
         foreach($this->performRead($selectPatch) as $index => $value) {
             $vulnerabilities[] = $value['id'];
@@ -183,6 +186,10 @@ class PatchRepository extends Repository implements PatchRepositoryInterface
         $vulnids = [];
         foreach($this->performRead($selectJoin) as $index => $value) {
             $vulnids[] = $value['vulnerability_id'];
+        }
+
+        if(empty($vulnids)) {
+            return 0;
         }
 
         $selectPatch = $this->getSlaveSql()->select()->columns(['id'])->from($this->tableName);

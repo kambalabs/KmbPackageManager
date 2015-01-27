@@ -49,7 +49,6 @@ class PatchReplyHandler
             }
         }
         $this->mcProxy->registrationRun($historyLog->getHostname(),$node->getEnvironment(),$historyLog->getCaller(),$historyLog->getActionId());
-        error_log('Doing something special in a special handler');
     }
 
 
