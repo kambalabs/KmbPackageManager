@@ -20,24 +20,17 @@
  */
 namespace KmbPackageManager\View\Decorator;
 
-use GtnDataTables\View\AbstractDecorator;
+use KmbMcollective\View\AbstractDecorator;
 
-class SecurityLogsServerDecorator extends AbstractDecorator
+class PatchDetailDecorator extends AbstractDecorator
 {
-    /**
-     * @return string
-     */
-    public function decorateTitle()
-    {
-        return $this->translate('Server');
-    }
-
     /**
      * @param McollectiveLogInterface $object
      * @return string
      */
-    public function decorateValue($object,$context = null)
+    public function decorate($object,$context = null)
     {
-        return $object->getServer();
+
+        return $this->translate('foo');
     }
 }

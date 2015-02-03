@@ -7,7 +7,7 @@ return [
             'package-manager' => [
                 'type' => 'Segment',
                 'options' => [
-                    'route' => '/env/:envId/security-fix',
+                    'route' => '/env/:envId/security-fix[/:node]',
                     'constraints' => [
                         'envId' => '[0-9]+',
                     ],
@@ -15,6 +15,50 @@ return [
                         '__NAMESPACE__' => 'KmbPackageManager\Controller',
                         'controller' => 'Package',
                         'action' => 'availableUpgrade',
+                        'envId' => 0
+                    ],
+                ],
+            ],
+            'host-patch-list' => [
+                'type' => 'Segment',
+                'options' => [
+                    'route' => '[/env/:envId]/patchlist/:hostname',
+                    'constraints' => [
+                        'envId' => '[0-9]+',
+                        'hostname' => '[0-9a-zA-Z\.\-]+',
+                    ],
+                    'defaults' => [
+                        '__NAMESPACE__' => 'KmbPackageManager\Controller',
+                        'controller' => 'Package',
+                        'action' => 'hostList',
+                        'envId' => 0,
+                    ],
+                ],
+            ],
+            'host-patch-all' => [
+                'type' => 'Segment',
+                'options' => [
+                    'route' => '[/env/:envId]/patch/:hostname/all',
+                    'constraints' => [
+                        'envId' => '[0-9]+',
+                        'hostname' => '[0-9a-zA-Z\.\-]+',
+                    ],
+                    'defaults' => [
+                        '__NAMESPACE__' => 'KmbPackageManager\Controller',
+                        'controller' => 'Package',
+                        'action' => 'hostFullPatch',
+                        'envId' => 0,
+                    ],
+                ],
+            ],
+            'pkgmgr-translation' => [
+                'type' => 'Segment',
+                'options' => [
+                    'route' => '/package-manager/translation',
+                    'defaults' => [
+                        '__NAMESPACE__' => 'KmbPackageManager\Controller',
+                        'controller' => 'Package',
+                        'action' => 'translation',
                     ],
                 ],
             ],
@@ -31,6 +75,7 @@ return [
                         '__NAMESPACE__' => 'KmbPackageManager\Controller',
                         'controller' => 'Package',
                         'action' => 'prePatch',
+                        'envId' => 0,
                     ],
                 ],
             ],
@@ -47,6 +92,7 @@ return [
                         '__NAMESPACE__' => 'KmbPackageManager\Controller',
                         'controller' => 'Package',
                         'action' => 'patch',
+                        'envId' => 0,
                     ],
                 ],
             ],
@@ -86,14 +132,21 @@ return [
     'mcollective' => [
          'translation' => [
              'patch' => [
-                 'detail' => $translate('Package <strong>#name#</strong> update to version <i>#version#</i>'),
-                 'icon' => 'glyphicon-export',
+                 // 'detail' => $translate('Package <strong>#name#</strong> update to version <i>#version#</i>'),
+                 // 'icon' => 'glyphicon-export',
+                 'formatter' => 'KmbPackageManager\Service\PatchFormatter'
              ]
          ],
          'handler' => [
              'PatchReplyHandler' => [
                  'factory' => 'KmbPackageManager\Handler\PatchReplyHandlerFactory',
              ]
+         ],
+         'blacklist' => [
+             'puppet',
+             'puppet-common',
+             'mcollective',
+             'mcollective-common'
          ],
     ],
     'navigation' => [
@@ -170,6 +223,20 @@ return [
             'ViewJsonStrategy',
         ],
     ],
+    'view_helper_config' => [
+        'widget' => [
+            'serverInfoBar' => [
+                'partials' => [
+                    'kmb-package-manager/server/kmbpkgmgr.serverinfobar.phtml',
+                ],
+            ],
+            'serverPanels' => [
+                'partials' => [
+                    'kmb-package-manager/server/kmbpkgmgr.serverpanels.phtml',
+                ],
+            ],
+        ],
+    ],
     'zfc_rbac' => [
         'guards' => [
             'ZfcRbac\Guard\ControllerGuard' => [
@@ -203,6 +270,27 @@ return [
                 ],
             ]
         ],
+        'nodefixlist' => [
+            'id' => 'nodefixlist',
+            'classes' => ['table','table-striped','table-hover','table-condensed','bootstrap-datatable'],
+            'collectorFactory' => 'KmbPackageManager\Service\AvailableFixCollectorFactory',
+            'columns' => [
+                [
+                    'decorator' => 'KmbPackageManager\View\Decorator\PatchNameDecorator',
+                    'key'       => 'publicid',
+                ],
+                [
+                    'decorator' => 'KmbPackageManager\View\Decorator\PackagesDecorator',
+                ],
+                [
+                    'decorator' => 'KmbPackageManager\View\Decorator\CriticityDecorator',
+                    'key'       => 'criticity',
+                ],
+                [
+                    'decorator' => 'KmbPackageManager\View\Decorator\NodePatchDecorator',
+                ],
+            ]
+        ],
         'securitylogs' => [
             'id' => 'securitylogs',
             'classes' => ['table','table-striped','table-hover','table-condensed','bootstrap-datatable'],
@@ -210,7 +298,7 @@ return [
             'columns' => [
                 [
                     'decorator' => 'KmbPackageManager\View\Decorator\SecurityLogsDateDecorator',
-                    'key'       => 'update_at',
+                    'key'       => 'updated_at',
                 ],
                 [
                     'decorator' => 'KmbPackageManager\View\Decorator\SecurityLogsUserDecorator',

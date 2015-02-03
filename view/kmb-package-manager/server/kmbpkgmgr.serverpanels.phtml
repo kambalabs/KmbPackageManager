@@ -1,0 +1,12 @@
+<?php $this->inlineScript()->prependFile($this->basePath() . '/js/kmb.pkgmgr.actions.js'); ?>
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <span class="glyphicon glyphicon-list-alt"></span>
+        <span class="panel-break"></span>
+        <?= $this->translate('CVE List'); ?>
+    </div>
+    <div class="panel-body">
+        <?= $this->datatable('nodefixlist')->renderHtml(); ?>
+    </div>
+</div>
+<?= $this->partial('kmb-package-manager/patch/prepatch_partial.phtml',[]); ?>

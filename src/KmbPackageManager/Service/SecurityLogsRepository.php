@@ -49,8 +49,34 @@ class SecurityLogsRepository extends Repository implements SecurityLogsRepositor
         } else {
             $select->order("updated_at DESC");
         }
+        if(isset($limit)){
+            $select->limit($limit);
+        }
+        if(isset($offset)){
+            $select->offset($offset);
+        }
         $result = $this->hydrateAggregateRootsFromResult($this->performRead($select));
         return $result;
+    }
+    public function getAllCountFiltered($query = null, $orderBy=null)
+    {
+        $select = $this->getSelect();
+
+        if($query) {
+            $select->where
+                ->like('server', '%'. $query .'%')
+                ->or
+                ->like('package', '%', $query . '%')
+                ->or
+                ->like('username', '%', $query . '%');
+        }
+        if($orderBy != null) {
+            $select->order($orderBy);
+        } else {
+            $select->order("updated_at DESC");
+        }
+        $result = $this->hydrateAggregateRootsFromResult($this->performRead($select));
+        return count($result);
     }
 
     public function getLogForHostByActionIdRequestId($actionid,$requestid,$hostname) {

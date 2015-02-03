@@ -78,9 +78,16 @@ class AvailableFixCollector implements CollectorInterface
         $nodesCollection = $this->getNodeService()->getAll($query);
         $environment_hosts = [];
         foreach($nodesCollection as $node) {
-            $environment_hosts[] = $node->getName();
+            if(isset($params['node'])) {
+                if($params['node'] == $node->getName()){
+                    $environment_hosts[] = $node->getName();
+                }
+            }else{
+                $environment_hosts[] = $node->getName();
+            }
         }
         $patchList = $this->patchRepository->getAllByHostList($environment_hosts, $dtquery, $orderBy, $limit, $offset);
+        error_log(print_r($patchList,true));
         $processedPatchList = [];
         foreach($patchList as $index => $patch) {
             $processedPatchList[] = $patch->setAffectedHostsInContext(array_intersect($patch->getAffectedHosts(),$environment_hosts));

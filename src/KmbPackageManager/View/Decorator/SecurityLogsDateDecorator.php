@@ -36,7 +36,7 @@ class SecurityLogsDateDecorator extends AbstractDecorator
      * @param McollectiveLogInterface $object
      * @return string
      */
-    public function decorateValue($object)
+    public function decorateValue($object,$context=null)
     {
         return $object->getUpdatedAt();
     }

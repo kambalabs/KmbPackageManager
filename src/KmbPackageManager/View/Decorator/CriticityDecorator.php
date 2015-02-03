@@ -36,7 +36,7 @@ class CriticityDecorator extends AbstractDecorator
      * @param McollectiveLogInterface $object
      * @return string
      */
-    public function decorateValue($object)
+    public function decorateValue($object,$context = null)
     {
         switch($object->getCriticity()) {
         case "high":
@@ -50,7 +50,7 @@ class CriticityDecorator extends AbstractDecorator
             break;
         default:
             return '<span class="label label-uniform-large label-default">' . sprintf($this->translate('unknown : %s'),$object->getCriticity()) .'</span>';
-            break;            
+            break;
         }
     }
 }

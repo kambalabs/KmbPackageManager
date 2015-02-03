@@ -81,7 +81,7 @@ class SecurityLogsCollector implements CollectorInterface
         }
 
         $logList = $this->securityLogsRepository->getAllFiltered($dtquery, $orderBy, $limit, $offset);
-        return Collection::factory($logList, $limit, count($logList));
+        return Collection::factory($logList, $limit, $this->securityLogsRepository->getAllCountFiltered($dtquery, $orderBy));
     }
 
     /**

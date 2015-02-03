@@ -22,22 +22,16 @@ namespace KmbPackageManager\View\Decorator;
 
 use GtnDataTables\View\AbstractDecorator;
 
-class SecurityLogsServerDecorator extends AbstractDecorator
+class NodePatchDecorator extends AbstractDecorator
 {
-    /**
-     * @return string
-     */
     public function decorateTitle()
     {
-        return $this->translate('Server');
+        return $this->translate('Action');
     }
 
-    /**
-     * @param McollectiveLogInterface $object
-     * @return string
-     */
     public function decorateValue($object,$context = null)
     {
-        return $object->getServer();
+        $patchBtn = sprintf('<button class="btn btn-xs btn-danger patch-btn" data-cve="%s" data-url="%s" data-package="%s">&nbsp;%s&nbsp;</button>',$object->getPublicId(),$this->url('package-manager-generic-prepatch',['patch' => $object->getPublicId(), 'server' => $context['node']],[],true),implode(',',$object->getPackages()),$this->translate('Patch it!') );
+        return $patchBtn;
     }
 }

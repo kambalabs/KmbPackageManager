@@ -58,6 +58,25 @@ class PatchRepository extends Repository implements PatchRepositoryInterface
         return $this;
     }
 
+    public function getAllPackagesToUpgradeFor($hostname) {
+        $select = $this->getSlaveSql()
+                       ->select()
+                       ->from($this->joinTableName)
+                       ->join(
+                           ['hosts' => $this->hostTableName],
+                           'hosts.id = '.$this->joinTableName.'.host_id',
+                           ['*' => '*'],
+                           Select::JOIN_LEFT
+                       )->join(
+                           ['vuln' => $this->tableName],
+                           'vuln.id = '.$this->joinTableName.'.vulnerability_id',
+                           ['*' => '*'],
+                           Select::JOIN_RIGHT
+                       );
+        $result = $this->hydrateAggregateRootsFromResult($this->performRead($select));
+        return $result;
+    }
+
     /**
      * @param array $hostlist
      * @return McollectiveAgentInterface
@@ -79,7 +98,6 @@ class PatchRepository extends Repository implements PatchRepositoryInterface
             'host_id' => $hostids
         ]);
 
-
         $vulnids = [];
         foreach($this->performRead($selectJoin) as $index => $value) {
             $vulnids[] = $value['vulnerability_id'];
@@ -89,15 +107,19 @@ class PatchRepository extends Repository implements PatchRepositoryInterface
             return null;
         }
        $selectPatch = $this->getSlaveSql()->select()->columns(['id'])->from($this->tableName);
-       $selectPatch->where->in('id',$vulnids);
 
        if(isset($query)) {
-           $selectPatch->where
-               ->like('publicid', '%'. $query .'%')
-               ->or
-               ->like('package', '%'.$query.'%'
-               );
-           ;
+           //           $selectPatch->where->in('id',$vulnids);
+           $where = $selectPatch->where;
+           $where->NEST
+                  ->like('publicid', '%'. $query .'%')
+                  ->OR
+                  ->like('package', '%'.$query.'%')
+                  ->UNNEST
+                  ->AND
+                  ->in('id',$vulnids);
+       }else{
+           $selectPatch->where->in('id',$vulnids);
        }
 
        if($orderBy != null) {
@@ -120,12 +142,15 @@ class PatchRepository extends Repository implements PatchRepositoryInterface
         if(isset($offset)) {
             $selectPatch->offset($offset);
         }
-        error_log("==============================" . $selectPatch->getSqlString());
         $vulnerabilities = [];
+        error_log($selectPatch->getSqlString());
         foreach($this->performRead($selectPatch) as $index => $value) {
             $vulnerabilities[] = $value['id'];
         }
 
+        if(empty($vulnerabilities)){
+            return null;
+        }
         $select = $this
             ->getSlaveSql()
             ->select()

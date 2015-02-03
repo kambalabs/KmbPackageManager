@@ -36,7 +36,7 @@ class PatchNameDecorator extends AbstractDecorator
      * @param McollectiveLogInterface $object
      * @return string
      */
-    public function decorateValue($object)
+    public function decorateValue($object,$context=null)
     {
         return '<span><a title="'.$this->translate('Click to view details').'"href="' . $this->url('package-manager-patch-detail', ['action' => 'show', 'patch' => $this->escapeHtml($object->getPublicId())],[],true) . '">' . $this->escapeHtml($object->getPublicId()) . '</a></span>';
     }

@@ -1,0 +1,5 @@
+<?php $this->inlineScript()->prependFile($this->basePath() . '/js/kmb.pkgmgr.partial.server.js'); ?>
+<div class="col-md-2 info-bar pull-right">
+    <div id="vul_count">?</div>
+    <div class="stats-title"><button id="fullpatch-btn" class="btn patch-btn" data-url="<?= $this->url('package-manager-generic-prepatch',['patch' => 'all', 'server' => $this->node->getName()],[],true) ?>"><?= $this->translate('Patch all!'); ?></button></div>
+</div>

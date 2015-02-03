@@ -44,15 +44,23 @@ class PackageController extends AbstractActionController implements Authenticate
         $viewModel = $this->acceptableViewModelSelector($this->acceptCriteria);
         $variables = [];
 
+
         if ($viewModel instanceof JsonModel) {
             /** @var DataTable $datatable */
-            $datatable = $this->getServiceLocator()->get('fixlist');
             $params = $this->params()->fromQuery();
+            $node = $this->params()->fromRoute('node');
+            if($node !== null) {
+                $params['node'] = $node;
+                $datatable = $this->getServiceLocator()->get('nodefixlist');
+            }else{
+                $datatable = $this->getServiceLocator()->get('fixlist');
+            }
+
             $environment = $this->getServiceLocator()->get('EnvironmentRepository')->getById($this->params()->fromRoute('envId'));
             if ($environment !== null) {
                 $params['environment'] = $environment;
             }
-            $result = $datatable->getResult($params);
+            $result = $datatable->getResult($params,['node' => $node]);
             $variables = [
                 'draw' => $result->getDraw(),
                 'recordsTotal' => $result->getRecordsTotal(),
@@ -65,6 +73,23 @@ class PackageController extends AbstractActionController implements Authenticate
     }
 
 
+    public function hostListAction() {
+        $host = $this->params()->fromRoute('hostname');
+        $patchRepository = $this->getServiceLocator()->get('PatchRepository')->getAllByHostList([$host]);
+        $patchList = array_map(function($object){
+            return (array) $object;
+        },$patchRepository);
+        return new JsonModel($patchList);
+    }
+
+    public function hostFullPatchAction() {
+        $host = $this->params()->fromRoute('hostname');
+        $patchRepository = $this->getServiceLocator()->get('PatchRepository')->getAllByHostList([$host]);
+        $patchList = array_map(function($object){
+            return (array) $object;
+        },$patchRepository);
+        return new JsonModel($patchList);
+    }
 
     public function prePatchAction(){
         // Get from service locator
@@ -76,14 +101,32 @@ class PackageController extends AbstractActionController implements Authenticate
         // Get from params
         $host = $this->params()->fromRoute('server');
         $patchName = $this->params()->fromRoute('patch');
-        $patch = $fixCollector->getPatchInContext($patchName,$environment)->getData()[0];
-        if(! isset($host)) {
-            $host = $patch->getAffectedHostsInContext();
+        $package = [];
+        if($patchName === 'all' && isset($host)) {
+            $patches = $this->getServiceLocator()->get('PatchRepository')->getAllPackagesToUpgradeFor($host);
+            $config = $this->getServiceLocator()->get('Config');
+            $blacklist = $config['mcollective']['blacklist'];
+            $message = $this->translate('The following packages have been blacklisted and will not be updated :<br/>');
+            $message .= implode(', ',$blacklist);
+            $message .= $this->translate('<br/>These packages need to be updated separatly');
+            foreach($patches as $idx => $patch) {
+                foreach($patch->getPackages() as $index => $pkg) {
+                    if(! in_array($pkg,$package) && ! in_array($pkg,$blacklist)) {
+                        $package[] = $pkg;
+                    }
+                }
+            }
+            error_log('Packages : ' . print_r($package,true));
+        }else{
+            $patch = $fixCollector->getPatchInContext($patchName,$environment)->getData()[0];
+            if(! isset($host)) {
+                $host = $patch->getAffectedHostsInContext();
+            }
+            $package =  $patch->getPackages();
         }
-        $package =  $patch->getPackages();
 
         $action = $mcProxyPatchService->prepatch($host,$package,$environment->getNormalizedName(),$this->identity()->getLogin());
-        $result = $actionHistory->getResultsByActionid($action[0]->actionid,(count($action[0]->discovered_nodes)*count($package)),10);
+        $result = $actionHistory->getResultsByActionid($action[0]->actionid,count($action[0]->discovered_nodes),10);
         if(count($result) != 0) {
             $packageAction = [];
             foreach($result as $index => $resp) {
@@ -107,7 +150,7 @@ class PackageController extends AbstractActionController implements Authenticate
         $checkResult = $this->globalActionStatus($result);
         $divalert = ($checkResult['status'] === 'success') ? 'success' : 'danger';
 
-        $html = new ViewModel(['packages' => $packageAction, 'host' => $host, 'actionid' => $action[0]->actionid, 'result' => $checkResult, 'divalert' => $divalert, 'agent' => $result[0]->getAgent(), 'action' => $result[0]->getAction(), 'patch' => $patch ]);
+        $html = new ViewModel(['packages' => $packageAction, 'host' => $host, 'actionid' => $action[0]->actionid, 'result' => $checkResult, 'divalert' => $divalert, 'agent' => $result[0]->getAgent(), 'action' => $result[0]->getAction(), 'patch' => $patch, 'message' => $message ]);
         if($this->params()->fromRoute('server') != null) {
             $html->setTemplate('kmb-package-manager/package/pre-patch-host.phtml');
         } else {
@@ -115,6 +158,23 @@ class PackageController extends AbstractActionController implements Authenticate
         }
         $html->setTerminal(true);
         return $html;
+    }
+
+
+    public function translationAction() {
+        $translation = [
+            'patchTitle' => $this->translate('Patch'),
+            'patchSuccess' => $this->translate('Patch applied successfully'),
+            'patchPartially' => $this->translate('Patch partially applied.<br/>See logs for details'),
+            'patchNotApplied' => $this->translate('Patch NOT applied.<br/>See logs for details'),
+            'infoTitle' => $this->translate('Information'),
+            'patchWaitCheck' => $this->translate('Please wait while checking patches'),
+            'patchApply' => $this->translate('Applying patch'),
+            'patchError' => $this->translate('Error while applying Patch'),
+
+
+        ];
+        return new JsonModel($translation);
     }
 
 

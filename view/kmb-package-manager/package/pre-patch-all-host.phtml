@@ -13,6 +13,13 @@
           <?= $result['errors'][$agent . '::' . $action][0]; ?>
           <?php endif ?>
       </div>
+      <small>
+      <?php if(isset($message)) :?>
+          <strong>Note :</strong><br/>
+          <?=  $message ?>
+          <hr>
+      <?php endif ?>
+      </small>
       <?php if ($result['status'] === 'success'): ?>
       <div class="panel-group" id="patchTable" role="tablist" aria-multiselectable="true">
           <?php ksort($packages) ?>

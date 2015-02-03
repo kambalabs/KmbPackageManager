@@ -36,7 +36,7 @@ class PackagesDecorator extends AbstractDecorator
      * @param McollectiveLogInterface $object
      * @return string
      */
-    public function decorateValue($object)
+    public function decorateValue($object, $context = null)
     {
         $list = $object->getPackages();
         $size = count($list);
@@ -49,9 +49,9 @@ class PackagesDecorator extends AbstractDecorator
         if ($others > 0) {
             $field .= "<li><span class='small text-muted'><a title='". implode(', ',array_slice($list,4)) ."'>". sprintf($this->translatePlural("and %s more","and %s more", $others), $others) . "</a></span></li>";
         }
-           
+
         $field .= "</ul>";
-        
+
         return $field;
     }
 }
