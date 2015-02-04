@@ -22,7 +22,7 @@
       <?php endif ?>
       </small>
       <?php if ($result['status'] === 'success'): ?>
-      <table id="patchTable" class="table table-striped table-hover table-condensed bootstrap-datatable dataTable no-footer">
+      <table id="patchTable" class="patchTable table table-striped table-hover table-condensed bootstrap-datatable dataTable no-footer">
           <thead>
               <th><?= $this->translate('Package') ?></th>
               <th><?= $this->translate('From Version') ?></th>
@@ -31,12 +31,13 @@
           </thead>
           <tbody id="PackageListToUpgrade">
 	      <?php foreach($packages[$host] as $package => $info): ?>
-	      <tr><td><?= $info->package ?></td><td><?= $info->from_version ?><input type="hidden" value="<?= $info->from_version ?>" name="package[<?= $host ?>][<?= $info->package ?>][from_version]"/></td><td><?= $info->version ?></td><td><?= $info->repo ?></td></tr>
+	      <tr><td><?= $info->package ?></td><td><?= $info->from_version ?></td><td><?= $info->version ?></td><td><?= $info->repo ?></td></tr>
 	      <?php endforeach ?>
           </tbody>
       </table>
       <?php foreach($packages[$host] as $package => $info): ?>
-      <input type="hidden" value="<?= $info->version ?>" name="package[<?= $host ?>][<?= $info->package ?>][version]"/>
+     <input type="hidden" value="<?= $info->from_version ?>" name="package[<?= $host ?>][<?= $info->package ?>][from_version]"/>
+     <input type="hidden" value="<?= $info->version ?>" name="package[<?= $host ?>][<?= $info->package ?>][version]"/>
       <?php endforeach ?>
      </div>
   <div class="modal-footer">

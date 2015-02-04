@@ -116,7 +116,7 @@ $(document).ready(function() {
 	    data: "cve="+$(this).data('cve')+"&packages="+$(this).data('package'),
 	    success: function(data) {
 		$("#prepatch-modalcontent").html(data);
-                $("#patchTable").DataTable();
+                $(".patchTable").DataTable();
 		$('#prepatch_detail').modal('show');
 	    },
 	    complete: function(data) {

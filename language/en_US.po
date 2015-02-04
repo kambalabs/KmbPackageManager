@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Kamba\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-02-03 17:49+0100\n"
-"PO-Revision-Date: 2015-02-03 17:49+0100\n"
+"POT-Creation-Date: 2015-02-04 14:47+0100\n"
+"PO-Revision-Date: 2015-02-04 14:50+0100\n"
 "Last-Translator: slaws\n"
 "Language-Team: Kamba Contibutors <devteam@kamba.org>\n"
 "Language: en_US\n"
@@ -16,52 +16,62 @@ msgstr ""
 "X-Generator: Poedit 1.7.3\n"
 "X-Poedit-SearchPath-0: ..\n"
 
-#: ../config/module.config.php:149
+#: ../config/module.config.php:155
 msgid "Servers"
 msgstr "Servers"
 
-#: ../config/module.config.php:154
+#: ../config/module.config.php:160
 msgid "Inventory"
 msgstr "Inventory"
 
-#: ../config/module.config.php:161
+#: ../config/module.config.php:167
 msgid "Security"
 msgstr "Security"
 
-#: ../config/module.config.php:168
+#: ../config/module.config.php:174
 msgid "Security Logs"
 msgstr "Security Logs"
 
-#: ../src/KmbPackageManager/Controller/PackageController.php:161
+#: ../src/KmbPackageManager/Controller/PackageController.php:109
+msgid ""
+"The following packages have been blacklisted and will not be updated :<br/>"
+msgstr ""
+"The following packages have been blacklisted and will not be updated :<br/>"
+
+#: ../src/KmbPackageManager/Controller/PackageController.php:111
+msgid "<br/>These packages need to be updated separatly"
+msgstr "<br/>These packages need to be updated separatly"
+
+#: ../src/KmbPackageManager/Controller/PackageController.php:166
 #: ../view/kmb-package-manager/patch/show.phtml:37
 msgid "Patch"
 msgstr "Patch"
 
-#: ../src/KmbPackageManager/Controller/PackageController.php:162
+#: ../src/KmbPackageManager/Controller/PackageController.php:167
 msgid "Patch applied successfully"
 msgstr "Patch applied successfully"
 
-#: ../src/KmbPackageManager/Controller/PackageController.php:163
+#: ../src/KmbPackageManager/Controller/PackageController.php:168
 msgid "Patch partially applied.<br/>See logs for details"
 msgstr "Patch partially applied.<br/>See logs for details"
 
-#: ../src/KmbPackageManager/Controller/PackageController.php:164
+#: ../src/KmbPackageManager/Controller/PackageController.php:169
 msgid "Patch NOT applied.<br/>See logs for details"
 msgstr "Patch NOT applied.<br/>See logs for details"
 
-#: ../src/KmbPackageManager/Controller/PackageController.php:165
+#: ../src/KmbPackageManager/Controller/PackageController.php:170
 msgid "Information"
 msgstr "Information"
 
-#: ../src/KmbPackageManager/Controller/PackageController.php:166
+#: ../src/KmbPackageManager/Controller/PackageController.php:171
 msgid "Please wait while checking patches"
 msgstr "Please wait while checking patches"
 
-#: ../src/KmbPackageManager/Controller/PackageController.php:167
+#: ../src/KmbPackageManager/Controller/PackageController.php:172
 msgid "Applying patch"
 msgstr "Applying patch"
 
-#: ../src/KmbPackageManager/Controller/PackageController.php:168
+#: ../src/KmbPackageManager/Controller/PackageController.php:173
 msgid "Error while applying Patch"
 msgstr "Error while applying Patch"
 
@@ -69,16 +79,16 @@ msgstr "Error while applying Patch"
 msgid "<h4>Warning !</h4><p>You have to select an environment first !</p>"
 msgstr "<h4>Warning !</h4><p>You have to select an environment first !</p>"
 
-#: ../src/KmbPackageManager/Service/PatchFormatter.php:32
+#: ../src/KmbPackageManager/Service/PatchFormatter.php:34
 #, php-format
 msgid "Upgrading %d package"
 msgid_plural "Upgrading %d packages"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Upgrading %d package"
+msgstr[1] "Upgrading %d packages"
 
-#: ../src/KmbPackageManager/Service/PatchFormatter.php:38
+#: ../src/KmbPackageManager/Service/PatchFormatter.php:41
 msgid "Upgrading package(s) (CLI mode)"
-msgstr ""
+msgstr "Upgrading package(s) (CLI mode)"
 
 #: ../src/KmbPackageManager/View/Decorator/CriticityDecorator.php:32
 msgid "Criticity"
@@ -116,7 +126,7 @@ msgstr "Action"
 
 #: ../src/KmbPackageManager/View/Decorator/NodePatchDecorator.php:34
 msgid "Patch it!"
-msgstr ""
+msgstr "Patch it!"
 
 #: ../src/KmbPackageManager/View/Decorator/PackagesDecorator.php:32
 msgid "Impacted packages"
@@ -131,7 +141,7 @@ msgstr[1] "and %s more"
 
 #: ../src/KmbPackageManager/View/Decorator/PatchDetailDecorator.php:34
 msgid "foo"
-msgstr ""
+msgstr "foo"
 
 #: ../src/KmbPackageManager/View/Decorator/PatchNameDecorator.php:32
 msgid "Public ID"
@@ -150,8 +160,8 @@ msgid "FromVersion"
 msgstr "FromVersion"
 
 #: ../src/KmbPackageManager/View/Decorator/SecurityLogsPackageDecorator.php:32
-#: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:33
-#: ../view/kmb-package-manager/package/pre-patch-host.phtml:19
+#: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:40
+#: ../view/kmb-package-manager/package/pre-patch-host.phtml:27
 msgid "Package"
 msgstr "Package"
 
@@ -193,46 +203,46 @@ msgid "Package Installation"
 msgstr "Package Installation"
 
 #: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:9
-#: ../view/kmb-package-manager/package/pre-patch-host.phtml:9
+#: ../view/kmb-package-manager/package/pre-patch-host.phtml:10
 msgid "The following packages will be upgraded"
 msgstr "The following packages will be upgraded"
 
 #: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:11
-#: ../view/kmb-package-manager/package/pre-patch-host.phtml:11
+#: ../view/kmb-package-manager/package/pre-patch-host.phtml:12
 msgid "Error with pre-patch on this server :"
 msgstr "Error with pre-patch on this server :"
 
-#: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:24
+#: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:31
 #, php-format
 msgid "%d package"
 msgid_plural "%d packages"
 msgstr[0] "%d package"
 msgstr[1] "%d packages"
 
-#: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:34
-#: ../view/kmb-package-manager/package/pre-patch-host.phtml:20
+#: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:41
+#: ../view/kmb-package-manager/package/pre-patch-host.phtml:28
 msgid "From Version"
 msgstr "From Version"
 
-#: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:35
-#: ../view/kmb-package-manager/package/pre-patch-host.phtml:21
+#: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:42
+#: ../view/kmb-package-manager/package/pre-patch-host.phtml:29
 msgid "To Version"
 msgstr "To Version"
 
-#: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:36
-#: ../view/kmb-package-manager/package/pre-patch-host.phtml:22
+#: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:43
+#: ../view/kmb-package-manager/package/pre-patch-host.phtml:30
 msgid "Repository"
 msgstr "Repository"
 
-#: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:52
-#: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:57
-#: ../view/kmb-package-manager/package/pre-patch-host.phtml:32
-#: ../view/kmb-package-manager/package/pre-patch-host.phtml:37
+#: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:59
+#: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:64
+#: ../view/kmb-package-manager/package/pre-patch-host.phtml:44
+#: ../view/kmb-package-manager/package/pre-patch-host.phtml:49
 msgid "Cancel"
 msgstr "Cancel"
 
-#: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:53
-#: ../view/kmb-package-manager/package/pre-patch-host.phtml:33
+#: ../view/kmb-package-manager/package/pre-patch-all-host.phtml:60
+#: ../view/kmb-package-manager/package/pre-patch-host.phtml:45
 msgid "Install Package"
 msgstr "Install Package"
 
@@ -270,11 +280,11 @@ msgstr "Hostname"
 
 #: ../view/kmb-package-manager/server/kmbpkgmgr.serverinfobar.phtml:4
 msgid "Patch all!"
-msgstr ""
+msgstr "Patch all!"
 
 #: ../view/kmb-package-manager/server/kmbpkgmgr.serverpanels.phtml:6
 msgid "CVE List"
-msgstr ""
+msgstr "CVE List"
 
 #~ msgid "Package <strong>#name#</strong> update to version <i>#version#</i>"
 #~ msgstr "Package <strong>#name#</strong> update to version <i>#version#</i>"
