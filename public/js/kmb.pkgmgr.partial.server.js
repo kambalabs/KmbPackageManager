@@ -5,6 +5,7 @@ $(window).load(function () {
     var envUriMatch = document.location.pathname.match(/^\/env\/([1-9][0-9]*)\//);
     var environment = envUriMatch ? envUriMatch[1] : 0;
     if(server) {
+        var patchList = [];
         $.ajax({
             'async': false,
             'global': false,

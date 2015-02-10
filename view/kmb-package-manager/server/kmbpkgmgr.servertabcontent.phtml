@@ -1,0 +1,5 @@
+<?php $this->inlineScript()->prependFile($this->basePath() . '/js/kmb.pkgmgr.actions.js'); ?>
+<div class="tab-pane" id="node-fix">
+    <?= $this->datatable('nodefixlist')->renderHtml(); ?>
+</div>
+<?= $this->partial('kmb-package-manager/patch/prepatch_partial.phtml',[]); ?>

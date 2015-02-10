@@ -230,9 +230,14 @@ return [
                     'kmb-package-manager/server/kmbpkgmgr.serverinfobar.phtml',
                 ],
             ],
-            'serverPanels' => [
+            'serverTabTitle' => [
                 'partials' => [
-                    'kmb-package-manager/server/kmbpkgmgr.serverpanels.phtml',
+                    'kmb-package-manager/server/kmbpkgmgr.servertabtitle.phtml',
+                ],
+            ],
+            'serverTabContent' => [
+                'partials' => [
+                    'kmb-package-manager/server/kmbpkgmgr.servertabcontent.phtml',
                 ],
             ],
         ],
