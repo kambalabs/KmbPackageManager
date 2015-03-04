@@ -1,6 +1,6 @@
 <?php
 /**
- * @copyright Copyright (c) 2014 Orange Applications for Business
+ * @copyright Copyright (c) 2014, 2015 Orange Applications for Business
  * @link      http://github.com/kambalabs for the sources repositories
  *
  * This file is part of Kamba.
@@ -72,7 +72,7 @@ class PatchRepository extends Repository implements PatchRepositoryInterface
                            'vuln.id = '.$this->joinTableName.'.vulnerability_id',
                            ['*' => '*'],
                            Select::JOIN_RIGHT
-                       );
+                       )->where(['hosts.hostname' => $hostname]);
         $result = $this->hydrateAggregateRootsFromResult($this->performRead($select));
         return $result;
     }
