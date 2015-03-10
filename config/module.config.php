@@ -192,10 +192,12 @@ return [
                         'action' => 'availableUpgrade',
                         'useRouteMatch' => true,
                         'pages' => [
-                            'id' => 'patch-detail',
-                            'label' => $translate('Patch detail'),
-                            'route' => 'package-manager-patch-detail',
-                            'useRouteMatch' => true,
+                            [
+                                'id' => 'patch-detail',
+                                'label' => $translate('Patch detail'),
+                                'route' => 'package-manager-patch-detail',
+                                'useRouteMatch' => true,
+                            ]
                         ],
                     ],
                     [
