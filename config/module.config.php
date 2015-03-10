@@ -7,7 +7,7 @@ return [
             'package-manager' => [
                 'type' => 'Segment',
                 'options' => [
-                    'route' => '/env/:envId/security-fix[/:node]',
+                    'route' => '[/env/:envId]/security-fix[/:node]',
                     'constraints' => [
                         'envId' => '[0-9]+',
                     ],
@@ -15,7 +15,7 @@ return [
                         '__NAMESPACE__' => 'KmbPackageManager\Controller',
                         'controller' => 'Package',
                         'action' => 'availableUpgrade',
-                        'envId' => 0
+                        'envId' => '0',
                     ],
                 ],
             ],
@@ -31,7 +31,7 @@ return [
                         '__NAMESPACE__' => 'KmbPackageManager\Controller',
                         'controller' => 'Package',
                         'action' => 'hostList',
-                        'envId' => 0,
+                        'envId' => '0',
                     ],
                 ],
             ],
@@ -47,7 +47,7 @@ return [
                         '__NAMESPACE__' => 'KmbPackageManager\Controller',
                         'controller' => 'Package',
                         'action' => 'hostFullPatch',
-                        'envId' => 0,
+                        'envId' => '0',
                     ],
                 ],
             ],
@@ -75,7 +75,7 @@ return [
                         '__NAMESPACE__' => 'KmbPackageManager\Controller',
                         'controller' => 'Package',
                         'action' => 'prePatch',
-                        'envId' => 0,
+                        'envId' => '0',
                     ],
                 ],
             ],
@@ -92,7 +92,7 @@ return [
                         '__NAMESPACE__' => 'KmbPackageManager\Controller',
                         'controller' => 'Package',
                         'action' => 'patch',
-                        'envId' => 0,
+                        'envId' => '0',
                     ],
                 ],
             ],
@@ -108,7 +108,7 @@ return [
                         '__NAMESPACE__' => 'KmbPackageManager\Controller',
                         'controller' => 'Patch',
                         'action' => 'show',
-                        'envId' => 0,
+                        'envId' => '0',
                     ],
                 ],
             ],
@@ -123,7 +123,7 @@ return [
                         '__NAMESPACE__' => 'KmbPackageManager\Controller',
                         'controller' => 'Patch',
                         'action' => 'history',
-                        'envId' => 0,
+                        'envId' => '0',
                     ],
                 ],
             ]
@@ -176,6 +176,33 @@ return [
                         'action' => 'history',
                         'useRouteMatch' => true,
                         'tabindex' => 42,
+                    ],
+                ],
+            ],
+        ],
+        'breadcrumb' => [
+            'home' => [
+                'pages' => [
+                    'servers' => [
+                        'label' => $translate('Inventory'),
+                    ],
+                    [
+                        'label' => $translate('Security'),
+                        'route' => 'package-manager',
+                        'action' => 'availableUpgrade',
+                        'useRouteMatch' => true,
+                        'pages' => [
+                            'id' => 'patch-detail',
+                            'label' => $translate('Patch detail'),
+                            'route' => 'package-manager-patch-detail',
+                            'useRouteMatch' => true,
+                        ],
+                    ],
+                    [
+                        'label' => $translate('Security Logs'),
+                        'route' => 'package-manager-security-logs',
+                        'action' => 'history',
+                        'useRouteMatch' => true,
                     ],
                 ],
             ],

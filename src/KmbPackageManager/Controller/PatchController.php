@@ -20,12 +20,12 @@
  */
 namespace KmbPackageManager\Controller;
 
+use GtnDataTables\Service\DataTable;
+use KmbAuthentication\Controller\AuthenticatedControllerInterface;
 use Zend\Log\Logger;
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\JsonModel;
 use Zend\View\Model\ViewModel;
-use KmbAuthentication\Controller\AuthenticatedControllerInterface;
-use KmbPackageManager\Model\SecurityLogs;
 
 class PatchController extends AbstractActionController implements AuthenticatedControllerInterface
 {
@@ -38,34 +38,36 @@ class PatchController extends AbstractActionController implements AuthenticatedC
         ),
     );
 
-
-    public function showAction(){
+    public function showAction()
+    {
         $environment = $this->getServiceLocator()->get('EnvironmentRepository')->getById($this->params()->fromRoute('envId'));
-        $patch = $this->getServiceLocator()->get('KmbPackageManager\Service\AvailableFix')->getPatchInContext($this->params()->fromRoute('patch'),$environment)->getData()[0];
+        $patch = $this->getServiceLocator()->get('KmbPackageManager\Service\AvailableFix')->getPatchInContext($this->params()->fromRoute('patch'), $environment)->getData()[0];
         if ($environment == null) {
             $this->globalMessenger()->addDangerMessage($this->translate('<h4>Warning !</h4><p>You have to select an environment first !</p>'));
         }
+        $this->getServiceLocator()->get('breadcrumb')->findBy('id', 'patch-detail')->setLabel($patch->getPublicId());
         return new ViewModel(['patch' => $patch, 'environment' => $environment]);
     }
 
-    public function historyAction(){
+    public function historyAction()
+    {
         $viewModel = $this->acceptableViewModelSelector($this->acceptCriteria);
         $variables = [];
 
         if ($viewModel instanceof JsonModel) {
             /** @var DataTable $datatable */
-            $datatable   = $this->getServiceLocator()->get('securitylogs');
-            $params      = $this->params()->fromQuery();
+            $datatable = $this->getServiceLocator()->get('securitylogs');
+            $params = $this->params()->fromQuery();
             $environment = $this->getServiceLocator()->get('EnvironmentRepository')->getById($this->params()->fromRoute('envId'));
             if ($environment !== null) {
                 $params['environment'] = $environment;
             }
             $result = $datatable->getResult($params);
             $variables = [
-                'draw'            => $result->getDraw(),
-                'recordsTotal'    => $result->getRecordsTotal(),
+                'draw' => $result->getDraw(),
+                'recordsTotal' => $result->getRecordsTotal(),
                 'recordsFiltered' => $result->getRecordsFiltered(),
-                'data'            => $result->getData(),
+                'data' => $result->getData(),
             ];
         }
 
@@ -74,7 +76,7 @@ class PatchController extends AbstractActionController implements AuthenticatedC
 
     /**
      * @param string $message
-     * @return IndexController
+     * @return PatchController
      */
     public function debug($message)
     {
