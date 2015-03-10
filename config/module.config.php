@@ -99,7 +99,7 @@ return [
             'package-manager-patch-detail' => [
                 'type' => 'Segment',
                 'options' => [
-                    'route' => '/env/:envId/patch/:patch',
+                    'route' => '[/env/:envId]/patch/:patch',
                     'constraints' => [
                         'envId' => '[0-9]+',
                         'patch' => '[0-9a-zA-Z\.\-]+',
