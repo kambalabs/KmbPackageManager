@@ -255,18 +255,18 @@ return [
     'view_helper_config' => [
         'widget' => [
             'serverInfoBar' => [
-                'partials' => [
-                    'kmb-package-manager/server/kmbpkgmgr.serverinfobar.phtml',
+                [
+                    'template' => 'kmb-package-manager/server/kmbpkgmgr.serverinfobar.phtml',
                 ],
             ],
             'serverTabTitle' => [
-                'partials' => [
-                    'kmb-package-manager/server/kmbpkgmgr.servertabtitle.phtml',
+                [
+                    'template' => 'kmb-package-manager/server/kmbpkgmgr.servertabtitle.phtml',
                 ],
             ],
             'serverTabContent' => [
-                'partials' => [
-                    'kmb-package-manager/server/kmbpkgmgr.servertabcontent.phtml',
+                [
+                    'template' => 'kmb-package-manager/server/kmbpkgmgr.servertabcontent.phtml',
                 ],
             ],
         ],
