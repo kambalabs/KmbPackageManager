@@ -87,7 +87,7 @@ class AvailableFixCollector implements CollectorInterface
             }
         }
         $patchList = $this->patchRepository->getAllByHostList($environment_hosts, $dtquery, $orderBy, $limit, $offset);
-        error_log(print_r($patchList,true));
+        //error_log(print_r($patchList,true));
         $processedPatchList = [];
         foreach($patchList as $index => $patch) {
             $processedPatchList[] = $patch->setAffectedHostsInContext(array_intersect($patch->getAffectedHosts(),$environment_hosts));

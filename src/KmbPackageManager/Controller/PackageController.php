@@ -20,14 +20,14 @@
  */
 namespace KmbPackageManager\Controller;
 
+use GtnDataTables\Service\DataTable;
+use KmbAuthentication\Controller\AuthenticatedControllerInterface;
+use KmbMcollective\Model\McollectiveLog;
+use KmbPackageManager\Model\SecurityLogs;
 use Zend\Log\Logger;
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\JsonModel;
 use Zend\View\Model\ViewModel;
-use KmbAuthentication\Controller\AuthenticatedControllerInterface;
-use KmbMcProxy\Service\Patch;
-use KmbPackageManager\Model\SecurityLogs;
-use KmbMcollective\Model\McollectiveLog;
 
 class PackageController extends AbstractActionController implements AuthenticatedControllerInterface
 {
@@ -40,19 +40,19 @@ class PackageController extends AbstractActionController implements Authenticate
         ),
     );
 
-    public function availableUpgradeAction() {
+    public function availableUpgradeAction()
+    {
         $viewModel = $this->acceptableViewModelSelector($this->acceptCriteria);
         $variables = [];
-
 
         if ($viewModel instanceof JsonModel) {
             /** @var DataTable $datatable */
             $params = $this->params()->fromQuery();
             $node = $this->params()->fromRoute('node');
-            if($node !== null) {
+            if ($node !== null) {
                 $params['node'] = $node;
                 $datatable = $this->getServiceLocator()->get('nodefixlist');
-            }else{
+            } else {
                 $datatable = $this->getServiceLocator()->get('fixlist');
             }
 
@@ -60,7 +60,7 @@ class PackageController extends AbstractActionController implements Authenticate
             if ($environment !== null) {
                 $params['environment'] = $environment;
             }
-            $result = $datatable->getResult($params,['node' => $node]);
+            $result = $datatable->getResult($params, ['node' => $node]);
             $variables = [
                 'draw' => $result->getDraw(),
                 'recordsTotal' => $result->getRecordsTotal(),
@@ -72,26 +72,28 @@ class PackageController extends AbstractActionController implements Authenticate
         return $viewModel->setVariables($variables);
     }
 
-
-    public function hostListAction() {
+    public function hostListAction()
+    {
         $host = $this->params()->fromRoute('hostname');
         $patchRepository = $this->getServiceLocator()->get('PatchRepository')->getAllByHostList([$host]);
-        $patchList = array_map(function($object){
-            return (array) $object;
-        },$patchRepository);
+        $patchList = array_map(function ($object) {
+            return (array)$object;
+        }, $patchRepository);
         return new JsonModel($patchList);
     }
 
-    public function hostFullPatchAction() {
+    public function hostFullPatchAction()
+    {
         $host = $this->params()->fromRoute('hostname');
         $patchRepository = $this->getServiceLocator()->get('PatchRepository')->getAllByHostList([$host]);
-        $patchList = array_map(function($object){
-            return (array) $object;
-        },$patchRepository);
+        $patchList = array_map(function ($object) {
+            return (array)$object;
+        }, $patchRepository);
         return new JsonModel($patchList);
     }
 
-    public function prePatchAction(){
+    public function prePatchAction()
+    {
         // Get from service locator
         $environment = $this->getServiceLocator()->get('EnvironmentRepository')->getById($this->params()->fromRoute('envId'));
         $mcProxyPatchService = $this->getServiceLocator()->get('mcProxyPatchService');
@@ -102,56 +104,56 @@ class PackageController extends AbstractActionController implements Authenticate
         $host = $this->params()->fromRoute('server');
         $patchName = $this->params()->fromRoute('patch');
         $package = [];
-        if($patchName === 'all' && isset($host)) {
+        if ($patchName === 'all' && isset($host)) {
             $patches = $this->getServiceLocator()->get('PatchRepository')->getAllPackagesToUpgradeFor($host);
             $config = $this->getServiceLocator()->get('Config');
             $blacklist = $config['mcollective']['blacklist'];
             $message = $this->translate('The following packages have been blacklisted and will not be updated :<br/>');
-            $message .= implode(', ',$blacklist);
+            $message .= implode(', ', $blacklist);
             $message .= $this->translate('<br/>These packages need to be updated separatly');
-            foreach($patches as $idx => $patch) {
-                foreach($patch->getPackages() as $index => $pkg) {
-                    if(! in_array($pkg,$package) && ! in_array($pkg,$blacklist)) {
+            foreach ($patches as $idx => $patch) {
+                foreach ($patch->getPackages() as $index => $pkg) {
+                    if (!in_array($pkg, $package) && !in_array($pkg, $blacklist)) {
                         $package[] = $pkg;
                     }
                 }
             }
-            error_log('Packages : ' . print_r($package,true));
-        }else{
-            $patch = $fixCollector->getPatchInContext($patchName,$environment)->getData()[0];
-            if(! isset($host)) {
+            //error_log('Packages : ' . print_r($package,true));
+        } else {
+            $patch = $fixCollector->getPatchInContext($patchName, $environment)->getData()[0];
+            if (!isset($host)) {
                 $host = $patch->getAffectedHostsInContext();
             }
-            $package =  $patch->getPackages();
+            $package = $patch->getPackages();
         }
 
-        $action = $mcProxyPatchService->prepatch($host,$package,$environment->getNormalizedName(),$this->identity()->getLogin());
-        $result = $actionHistory->getResultsByActionid($action[0]->actionid,count($action[0]->discovered_nodes),10);
-        if(count($result) != 0) {
+        $action = $mcProxyPatchService->prepatch($host, $package, $environment->getNormalizedName(), $this->identity()->getLogin());
+        $result = $actionHistory->getResultsByActionid($action[0]->actionid, count($action[0]->discovered_nodes), 10);
+        if (count($result) != 0) {
             $packageAction = [];
-            foreach($result as $index => $resp) {
+            foreach ($result as $index => $resp) {
                 $response_package = json_decode($resp->getResult());
                 $hostname = $resp->getHostname();
-                if(!isset($packageAction[$resp->getHostname()])) {
+                if (!isset($packageAction[$resp->getHostname()])) {
                     $packageAction[$resp->getHostname()] = [];
                 }
-                if(isset($response_package->outdated_packages) && count($response_package->outdated_packages) != 0 ) {
-                    $packageAction[$resp->getHostname()] = array_merge($response_package->outdated_packages,$packageAction[$resp->getHostname()]);
+                if (isset($response_package->outdated_packages) && count($response_package->outdated_packages) != 0) {
+                    $packageAction[$resp->getHostname()] = array_merge($response_package->outdated_packages, $packageAction[$resp->getHostname()]);
                 }
-                foreach($packageAction as $hostname => $pkg) {
-                    $packageAction[$hostname]=array_unique($packageAction[$hostname],SORT_REGULAR);
+                foreach ($packageAction as $hostname => $pkg) {
+                    $packageAction[$hostname] = array_unique($packageAction[$hostname], SORT_REGULAR);
                 }
             }
         }
-        foreach($packageAction as $host => $pkg_list) {
-            $packageAction[$host]=array_unique($pkg_list,SORT_REGULAR);
+        foreach ($packageAction as $host => $pkg_list) {
+            $packageAction[$host] = array_unique($pkg_list, SORT_REGULAR);
         }
 
         $checkResult = $this->globalActionStatus($result);
         $divalert = ($checkResult['status'] === 'success') ? 'success' : 'danger';
 
-        $html = new ViewModel(['packages' => $packageAction, 'host' => $host, 'actionid' => $action[0]->actionid, 'result' => $checkResult, 'divalert' => $divalert, 'agent' => $result[0]->getAgent(), 'action' => $result[0]->getAction(), 'patch' => $patch, 'message' => $message ]);
-        if($this->params()->fromRoute('server') != null) {
+        $html = new ViewModel(['packages' => $packageAction, 'host' => $host, 'actionid' => $action[0]->actionid, 'result' => $checkResult, 'divalert' => $divalert, 'agent' => $result[0]->getAgent(), 'action' => $result[0]->getAction(), 'patch' => $patch, 'message' => $message]);
+        if ($this->params()->fromRoute('server') != null) {
             $html->setTemplate('kmb-package-manager/package/pre-patch-host.phtml');
         } else {
             $html->setTemplate('kmb-package-manager/package/pre-patch-all-host.phtml');
@@ -160,8 +162,8 @@ class PackageController extends AbstractActionController implements Authenticate
         return $html;
     }
 
-
-    public function translationAction() {
+    public function translationAction()
+    {
         $translation = [
             'patchTitle' => $this->translate('Patch'),
             'patchSuccess' => $this->translate('Patch applied successfully'),
@@ -172,28 +174,27 @@ class PackageController extends AbstractActionController implements Authenticate
             'patchApply' => $this->translate('Applying patch'),
             'patchError' => $this->translate('Error while applying Patch'),
 
-
         ];
         return new JsonModel($translation);
     }
 
-
-    public function patchAction() {
+    public function patchAction()
+    {
         $this->debug("Starting patch Action");
         $environment = $this->getServiceLocator()->get('EnvironmentRepository')->getById($this->params()->fromRoute('envId'));
         $actionid = $this->params()->fromPost('actionid');
-        $packages =  $this->params()->fromPost('package');
+        $packages = $this->params()->fromPost('package');
 
         $mcProxyPatchService = $this->getServiceLocator()->get('mcProxyPatchService');
         $actionHistory = $this->getServiceLocator()->get('McollectiveHistoryRepository');
         $patchName = $this->params()->fromPost('patch');
-        $patch = $this->getServiceLocator()->get('KmbPackageManager\Service\AvailableFix')->getPatchInContext($patchName,$environment)->getData()[0];
+        $patch = $this->getServiceLocator()->get('KmbPackageManager\Service\AvailableFix')->getPatchInContext($patchName, $environment)->getData()[0];
         $host = $this->params()->fromRoute('server');
-        if(! isset($host)) {
+        if (!isset($host)) {
             $host = $patch->getAffectedHostsInContext();
         }
         $donepkg = [];
-        $requestids=[];
+        $requestids = [];
         $affectedHosts = [];
         do {
             /**
@@ -207,34 +208,33 @@ class PackageController extends AbstractActionController implements Authenticate
              *
              **/
             $hostlist = [];
-            $common_pkg= [];
-            foreach($packages as $hostname => $pkgs)
-            {
-                $group = $this->getSmallestGroup($common_pkg,$pkgs,$donepkg);
-                if(!empty($group)) {
+            $common_pkg = [];
+            foreach ($packages as $hostname => $pkgs) {
+                $group = $this->getSmallestGroup($common_pkg, $pkgs, $donepkg);
+                if (!empty($group)) {
                     $hostlist[] = $hostname;
                     $common_pkg = $group;
                 }
             }
-            $donepkg = array_merge($donepkg,$common_pkg);
-            if (! empty($common_pkg)) {
+            $donepkg = array_merge($donepkg, $common_pkg);
+            if (!empty($common_pkg)) {
                 $pkg_arg = [];
-                foreach($common_pkg as $name => $detail) {
+                foreach ($common_pkg as $name => $detail) {
                     $version = $detail['version'];
-                    $pkg_arg[] = [ 'name' => $name, 'version' => $version ];
+                    $pkg_arg[] = ['name' => $name, 'version' => $version];
                 }
-                $action = $mcProxyPatchService->patch($hostlist,$pkg_arg, $environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
-                foreach($action->discovered_nodes as $idx => $identity) {
-                    if(! in_array($identity, $affectedHosts)){
+                $action = $mcProxyPatchService->patch($hostlist, $pkg_arg, $environment->getNormalizedName(), $this->identity()->getLogin(), $actionid);
+                foreach ($action->discovered_nodes as $idx => $identity) {
+                    if (!in_array($identity, $affectedHosts)) {
                         array_push($affectedHosts, $identity);
                     }
                 }
-                $this->insertSecurityLog($common_pkg,$hostlist,$actionid,$action->result[0],$this->identity());
+                $this->insertSecurityLog($common_pkg, $hostlist, $actionid, $action->result[0], $this->identity());
                 $requestids[$action->result[0]] = ['packages' => $common_pkg, 'hosts' => $hostlist];
             }
-        } while(! empty($common_pkg));
-        $this->debug(print_r($action,true));
-        $mcoLog = new McollectiveLog($actionid, $this->identity()->getLogin(),$this->identity()->getName() , 'patch', is_string($hostlist) ? $hostlist : '('.implode('|',$hostlist).')', $affectedHosts, $environment->getNormalizedName(),json_encode($pkg_arg));
+        } while (!empty($common_pkg));
+        $this->debug(print_r($action, true));
+        $mcoLog = new McollectiveLog($actionid, $this->identity()->getLogin(), $this->identity()->getName(), 'patch', is_string($hostlist) ? $hostlist : '(' . implode('|', $hostlist) . ')', $affectedHosts, $environment->getNormalizedName(), json_encode($pkg_arg));
         try {
             $this->getServiceLocator()->get('McollectiveLogRepository')->add($mcoLog);
         } catch (\Exception $e) {
@@ -245,53 +245,52 @@ class PackageController extends AbstractActionController implements Authenticate
         return new JsonModel(['actionid' => $actionid, 'requestid' => $requestids]);
     }
 
-
-    public function insertSecurityLog($packages,$hosts,$actionid,$requestid,$identity) {
-        foreach($hosts as $index => $host)
-        {
-            foreach($packages as $name => $detail) {
+    public function insertSecurityLog($packages, $hosts, $actionid, $requestid, $identity)
+    {
+        foreach ($hosts as $index => $host) {
+            foreach ($packages as $name => $detail) {
                 $repository = $this->getServiceLocator()->get('SecurityLogsRepository');
-                $log = new SecurityLogs(date('Y-m-d G:i:s'),$identity->getLogin(),$name,$detail['from_version'],$detail['version'],$host,'pending',$actionid,$requestid);
+                $log = new SecurityLogs(date('Y-m-d G:i:s'), $identity->getLogin(), $name, $detail['from_version'], $detail['version'], $host, 'pending', $actionid, $requestid);
                 $repository->add($log);
                 $logs[$name] = $log;
             }
         }
-
     }
 
-    public function getSmallestGroup($reference,$array,$strip = []) {
-        $reference =array_diff_key($reference,$strip);
+    public function getSmallestGroup($reference, $array, $strip = [])
+    {
+        $reference = array_diff_key($reference, $strip);
         ksort($reference);
         ksort($array);
         ksort($strip);
-        if(empty($reference)) {
-            $reference = array_diff_key($array,$strip);
-        }else{
-            $reference = array_intersect_key($reference,$array);
+        if (empty($reference)) {
+            $reference = array_diff_key($array, $strip);
+        } else {
+            $reference = array_intersect_key($reference, $array);
         }
         return $reference;
     }
 
-    public function globalActionStatus($result) {
+    public function globalActionStatus($result)
+    {
         $status = "";
         $errors = [];
-        foreach($result as $actionResult)
-        {
-            if($actionResult->getStatusCode() == 0 && $status == "") {
+        foreach ($result as $actionResult) {
+            if ($actionResult->getStatusCode() == 0 && $status == "") {
                 $status = "success";
-            }elseif($actionResult->getStatusCode() == 0 && $status == "error") {
+            } elseif ($actionResult->getStatusCode() == 0 && $status == "error") {
                 $status = "partial";
-            }elseif($actionResult->getStatusCode() != 0 && $status == "") {
+            } elseif ($actionResult->getStatusCode() != 0 && $status == "") {
                 $status = "error";
-                $errors[$actionResult->getAgent()."::".$actionResult->getAction()][] = $actionResult->getResult();
-
-            }elseif($actionResult->getStatusCode() != 0 && $status == "success") {
+                $errors[$actionResult->getAgent() . "::" . $actionResult->getAction()][] = $actionResult->getResult();
+            } elseif ($actionResult->getStatusCode() != 0 && $status == "success") {
                 $status = "partial";
-                $errors[$actionResult->getAgent()."::".$actionResult->getAction()][] = $actionResult->getResult();
+                $errors[$actionResult->getAgent() . "::" . $actionResult->getAction()][] = $actionResult->getResult();
             }
         }
         return ['status' => $status, 'errors' => $errors];
     }
+
     /**
      * @param string $message
      * @return IndexController
