@@ -23,6 +23,8 @@ namespace KmbPackageManager\Controller;
 use GtnDataTables\Service\DataTable;
 use KmbAuthentication\Controller\AuthenticatedControllerInterface;
 use KmbMcollective\Model\McollectiveLog;
+use KmbMcollective\Model\ActionLog;
+use KmbMcollective\Model\CommandLog;
 use KmbPackageManager\Model\SecurityLogs;
 use Zend\Log\Logger;
 use Zend\Mvc\Controller\AbstractActionController;
@@ -98,6 +100,7 @@ class PackageController extends AbstractActionController implements Authenticate
         $environment = $this->getServiceLocator()->get('EnvironmentRepository')->getById($this->params()->fromRoute('envId'));
         $mcProxyPatchService = $this->getServiceLocator()->get('mcProxyPatchService');
         //$actionHistory = $this->getServiceLocator()->get('McollectiveHistoryRepository');
+        $actionLogRepository = $this->getServiceLocator()->get('ActionLogRepository');
         $watcher = $this->getServiceLocator()->get('ResultWatcher');
         $fixCollector = $this->getServiceLocator()->get('KmbPackageManager\Service\AvailableFix');
 
@@ -129,7 +132,21 @@ class PackageController extends AbstractActionController implements Authenticate
         }
 
         $action = $mcProxyPatchService->prepatch($host, $package, $environment->getNormalizedName(), $this->identity()->getLogin());
+        $alog = new ActionLog($action[0]->actionid);
+        $alog->setEnvironment($environment->getId());
+        $alog->setParameters(json_encode($package));
+        $alog->setDescription("Checking pre-patch for ". implode(', ',$package));
+        $alog->setLogin($this->identity()->getLogin());
+        $alog->setFullName($this->identity()->getName());
+        $alog->setSource('kamba');
+        $alog->setIhmIcon('glyphicon-check');
+
+        $command = new CommandLog($action[0]->result[0]);
+        $alog->addCommand($command);
+        $actionLogRepository->add($alog);
+
         $result = $watcher->watchFor($action[0]->actionid, count($action[0]->discovered_nodes), 10);
+        error_log(print_r($result,true));
         if (count($result) != 0) {
             $packageAction = [];
             foreach ($result as $index => $resp) {
