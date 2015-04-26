@@ -371,6 +371,7 @@ return [
     'service_manager' => [
         'factories' => [
             'KmbPackageManager\Service\AvailableFix' => 'KmbPackageManager\Service\AvailableFixCollectorFactory',
+            'ResultWatcher' => 'KmbPackageManager\Service\ResultWatcherFactory',
         ],
     ],
 ];

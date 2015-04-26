@@ -97,7 +97,8 @@ class PackageController extends AbstractActionController implements Authenticate
         // Get from service locator
         $environment = $this->getServiceLocator()->get('EnvironmentRepository')->getById($this->params()->fromRoute('envId'));
         $mcProxyPatchService = $this->getServiceLocator()->get('mcProxyPatchService');
-        $actionHistory = $this->getServiceLocator()->get('McollectiveHistoryRepository');
+        //$actionHistory = $this->getServiceLocator()->get('McollectiveHistoryRepository');
+        $watcher = $this->getServiceLocator()->get('ResultWatcher');
         $fixCollector = $this->getServiceLocator()->get('KmbPackageManager\Service\AvailableFix');
 
         // Get from params
@@ -128,7 +129,7 @@ class PackageController extends AbstractActionController implements Authenticate
         }
 
         $action = $mcProxyPatchService->prepatch($host, $package, $environment->getNormalizedName(), $this->identity()->getLogin());
-        $result = $actionHistory->getResultsByActionid($action[0]->actionid, count($action[0]->discovered_nodes), 10);
+        $result = $watcher->watchFor($action[0]->actionid, count($action[0]->discovered_nodes), 10);
         if (count($result) != 0) {
             $packageAction = [];
             foreach ($result as $index => $resp) {

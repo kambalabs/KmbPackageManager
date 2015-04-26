@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+<dataset>
+    <mcollective_actions_logs id="1" actionid="239397e749bf02940b36ad80c721cdfa" requestid="93270962486c50189151be8549549ad3" caller="jdoe" hostname="node1.local" agent="admin" action="mailq" sender="mcol.local" statuscode="0" result='{"status":0,"out":"Mail queue is empty\n","err":""}' received_at="2015-01-06 12:43:28" type="" finished="t" />
+    <mcollective_actions_logs id="2" actionid="253a72eaf16d08d2802c076eaccc6bf8" requestid="d81688cc5ab451e5af185e9b3f078631" caller="jmiller" hostname="node2.local" agent="admin" action="uname" sender="mcol.local" statuscode="0" result='{"status":0,"out":"Linux node2 3.16.0-4 #1 SMP Fri Nov 9 11:42:51 CET 2012 x86_64 GNU/Linux\n","err":""}' received_at="2015-01-20 23:00:55" type="default" finished="t" />
+    <mcollective_actions_logs id="3" actionid="a6e87a44ea922951bbf5cdbcd3988eb9" requestid="43edfdf3c84e57c0bc45b0d7e95a822e" caller="psmith" hostname="node1.local" agent="admin" action="df" sender="mcol.local" statuscode="0" result='{"status":0,"out":"Filesystem      Size  Used Avail Use% Mounted on\n\n","err":""}' received_at="2015-01-20 23:01:04" type="default" finished="t" />
+    <command_reply_logs id="1" requestid="239397e749bf02940b36ad80c721cdfa" username="ABCD1234" hostname="foo.bar.coin" agent="do" action="things"  statuscode="0" result='{"status":0,"out":"Mail queue is empty\n","err":""}' />
+    <command_reply_logs id="3" requestid="239397e749bf02940b36ad80c721cdfa" username="DEFG0987" hostname="bar.baz.coin" agent="do" action="things"  statuscode="0" result='{"status":0,"out":"Mail queue is empty\n","err":""}' />
+
+    <command_reply_logs id="4" requestid="b1ddad6cb8233287f8087dc36074b80a" username="ABCD1234" hostname="bar.baz.coin" agent="do" action="things"  statuscode="0" result='{"status":0,"out":"Mail queue is empty\n","err":""}' />
+
+    <command_reply_logs id="5" requestid="1099df8aee3e341d807f19ecbcd07ff0" username="DEFG0987" hostname="bar.baz.coin" agent="do" action="things"  statuscode="0" result='{"status":0,"out":"Mail queue is empty\n","err":""}' />
+    <command_logs requestid="239397e749bf02940b36ad80c721cdfa" actionid="80cb13ec244531e6ccc5203a1d57a56e"/>
+    <command_logs requestid="b1ddad6cb8233287f8087dc36074b80a" actionid="b1ddad6cb8233287f8087dc36074b80a"/>
+    <command_logs requestid="1099df8aee3e341d807f19ecbcd07ff0" actionid="1099df8aee3e341d807f19ecbcd07ff0"/>
+
+    <action_logs actionid="80cb13ec244531e6ccc5203a1d57a56e" finished="false" created_at="2015-03-02 15:27:49" />
+    <action_logs actionid="b1ddad6cb8233287f8087dc36074b80a" finished="true" created_at="2015-03-01 15:27:49" />
+    <action_logs actionid="1099df8aee3e341d807f19ecbcd07ff0" finished="false" created_at="2015-03-03 15:27:49" />
+</dataset>
