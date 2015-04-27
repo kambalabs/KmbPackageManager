@@ -27,7 +27,6 @@ class ResultWatcherFactory implements FactoryInterface
 {
     public function createService(ServiceLocatorInterface $serviceLocator)
     {
-        error_log("in factory");
         /** @var RevisionRepository $service */
         $service = new ResultWatcher();
         $service->setActionLogRepository($serviceLocator->get('ActionLogRepository'));

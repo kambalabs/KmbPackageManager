@@ -33,10 +33,9 @@ class ResultWatcher  {
         return $this->actionLogRepository;
     }
 
-    public function watchFor($actionid,$expectedResults,$time = null){
+    public function watchFor($actionid,$expectedResults,$time = null,$requestid = null){
         $replies = [];
         for ($i = 0; count($replies) < $expectedResults; $i++) {
-            error_log("watcher ... iteration : ".$i);
             if (isset($time)) {
                 if ($i > $time) {
                     break;
@@ -45,7 +44,18 @@ class ResultWatcher  {
             $action = $this->actionLogRepository->getById($actionid);
             if(isset($action)){
                 foreach($action->getCommands() as $command){
-                    $replies = array_merge($command->getReplies(),$replies);
+                    //                    $replies = array_merge($command->getAllFinishedReplies(),$replies);
+                    foreach($command->getAllFinishedReplies() as $reply)
+                    {
+                        if(isset($requestid))
+                        {
+                            if($reply->getRequestId() == $requestid){
+                                $replies[] = $reply;
+                            }
+                        }else{
+                            $replies[] = $reply;
+                        }
+                    }
                 }
             }
             sleep(1);

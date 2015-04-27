@@ -97,9 +97,10 @@ class PackageController extends AbstractActionController implements Authenticate
     public function prePatchAction()
     {
         // Get from service locator
-        $environment = $this->getServiceLocator()->get('EnvironmentRepository')->getById($this->params()->fromRoute('envId'));
+        $envId = $this->params()->fromRoute('envId');
+        $environment = $this->getServiceLocator()->get('EnvironmentRepository')->getById(isset($envId) ? $envId : "0");
         $mcProxyPatchService = $this->getServiceLocator()->get('mcProxyPatchService');
-        //$actionHistory = $this->getServiceLocator()->get('McollectiveHistoryRepository');
+
         $actionLogRepository = $this->getServiceLocator()->get('ActionLogRepository');
         $watcher = $this->getServiceLocator()->get('ResultWatcher');
         $fixCollector = $this->getServiceLocator()->get('KmbPackageManager\Service\AvailableFix');
@@ -170,6 +171,7 @@ class PackageController extends AbstractActionController implements Authenticate
         $checkResult = $this->globalActionStatus($result);
         $divalert = ($checkResult['status'] === 'success') ? 'success' : 'danger';
 
+        error_log(print_r($packageAction,true));
         $html = new ViewModel(['packages' => $packageAction, 'host' => $host, 'actionid' => $action[0]->actionid, 'result' => $checkResult, 'divalert' => $divalert, 'agent' => $result[0]->getAgent(), 'action' => $result[0]->getAction(), 'patch' => $patch, 'message' => $message]);
         if ($this->params()->fromRoute('server') != null) {
             $html->setTemplate('kmb-package-manager/package/pre-patch-host.phtml');
@@ -202,9 +204,38 @@ class PackageController extends AbstractActionController implements Authenticate
         $environment = $this->getServiceLocator()->get('EnvironmentRepository')->getById($this->params()->fromRoute('envId'));
         $actionid = $this->params()->fromPost('actionid');
         $packages = $this->params()->fromPost('package');
+        error_log(print_r($packages,true));
+        $hosts = [];
+        $pkglist = [];
+        foreach($packages as $hostname => $pkgs)
+        {
+            if(! in_array($hostname,$hosts))
+            {
+                $hosts[] = $hostname;
+            }
+            foreach(array_keys($pkgs) as $pkg )
+            {
+                if(! in_array($pkg,$pkglist))
+                {
+                    $pkglist[] = $pkg;
+                }
+            }
+
+        }
 
         $mcProxyPatchService = $this->getServiceLocator()->get('mcProxyPatchService');
-        $actionHistory = $this->getServiceLocator()->get('McollectiveHistoryRepository');
+        $actionLogRepository = $this->getServiceLocator()->get('ActionLogRepository');
+        $watcher = $this->getServiceLocator()->get('ResultWatcher');
+        $actionLog = $actionLogRepository->getById($actionid);
+        if(! isset($actionLog)){
+            error_log('!!! Creation action log at patch step ... it should not happen');
+            $actionLog = new ActionLog($actionid);
+            $actionLog->setLogin($this->identity()->getLogin());
+            $actionLog->setFullName($this->identity()->getName());
+        }
+        $actionLog->setDescription(sprintf($this->translate('Upgrading packages %s'),implode(' ,', $pkglist)));
+        $actionLogRepository->update($actionLog);
+
         $patchName = $this->params()->fromPost('patch');
         $patch = $this->getServiceLocator()->get('KmbPackageManager\Service\AvailableFix')->getPatchInContext($patchName, $environment)->getData()[0];
         $host = $this->params()->fromRoute('server');
@@ -242,6 +273,10 @@ class PackageController extends AbstractActionController implements Authenticate
                     $pkg_arg[] = ['name' => $name, 'version' => $version];
                 }
                 $action = $mcProxyPatchService->patch($hostlist, $pkg_arg, $environment->getNormalizedName(), $this->identity()->getLogin(), $actionid);
+                $command = new CommandLog($action->result[0]);
+                $actionLog->addCommand($command);
+                $actionLogRepository->update($actionLog);
+                $result = $watcher->watchFor($actionid, count($action->discovered_nodes), 60, $action->result[0]);
                 foreach ($action->discovered_nodes as $idx => $identity) {
                     if (!in_array($identity, $affectedHosts)) {
                         array_push($affectedHosts, $identity);
@@ -251,8 +286,12 @@ class PackageController extends AbstractActionController implements Authenticate
                 $requestids[$action->result[0]] = ['packages' => $common_pkg, 'hosts' => $hostlist];
             }
         } while (!empty($common_pkg));
-        $this->debug(print_r($action, true));
-        $mcoLog = new McollectiveLog($actionid, $this->identity()->getLogin(), $this->identity()->getName(), 'patch', is_string($hostlist) ? $hostlist : '(' . implode('|', $hostlist) . ')', $affectedHosts, $environment->getNormalizedName(), json_encode($pkg_arg));
+        $register = $mcProxyPatchService->registrationRun('('.implode('|',$hosts).')',$environment->getNormalizedName(),$this->identity()->getLogin(),$actionid);
+        $command = new CommandLog($register->result[0]);
+        $actionLog->addCommand($command);
+        $actionLogRepository->update($actionLog);
+
+        //        $mcoLog = new McollectiveLog($actionid, $this->identity()->getLogin(), $this->identity()->getName(), 'patch', is_string($hostlist) ? $hostlist : '(' . implode('|', $hostlist) . ')', $affectedHosts, $environment->getNormalizedName(), json_encode($pkg_arg));
         try {
             $this->getServiceLocator()->get('McollectiveLogRepository')->add($mcoLog);
         } catch (\Exception $e) {
